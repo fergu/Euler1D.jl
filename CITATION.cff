@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Ferguson"
+  given-names: "Kevin"
+  orcid: "https://orcid.org/0000-0000-0000-0000"
+title: "Euler1D: A simple code for solving the 1D Euler Equations"
+version: 0.8
+date-released: 2025-07-23
+url: "https://github.com/fergu/Euler1D"
