@@ -171,6 +171,8 @@ This section describes ideas for future functionality that could be added. Under
 
 Just because something is included here does not mean it is being actively worked on, and just because something isn't included doesn't mean it isn't of interest. If you are interested in contributing to any of these ideas or one of your own, feel free to open an issue or a pull request.
 
+- Add examples
+- Add tests
 - Support for web documentation using `Documenter.jl`
 - Register this package with the Julia package index to simplify installation (After V1.0)
 - Support for RANS models to describe, e.g., mixing across a material interface
