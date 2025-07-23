@@ -36,7 +36,7 @@ function cycle!( output::Simulation{T}, input::Simulation{T}, Δt::T ) where { T
     # Currently this is just a basic forward Euler integration
     output.velocity .= input.velocity .+ Δt .* output.∂u∂t
     output.intenergy .= input.intenergy .+ Δt .* output.∂e∂t
-    # Next we update the position of each cell edge
+    # Next we update the position of each zone edge
     for i in range( 1, output.nedges )
         output.zone_edge[i] = input.zone_edge[i] + Δt * 0.5 * ( input.velocity[i] + output.velocity[i] )
     end

@@ -1,25 +1,25 @@
 """
     artificial_viscosity( Cᵥ::T, c::T, ρ::T, Δx::T, u₋::T, u₊::T ) where { T <: AbstractFloat }
 
-Compute an artificial viscosity at a cell interface. 
+Compute an artificial viscosity at a zone interface. 
 
 # Returns
 A value of type `T` representing the value of the artificial viscosity.
 
 # Arguments
 - Cᵥ: An O(1) coefficient to control the strength of the artificial viscosity. [ ⋅ ]
-- c : The speed of sound in the cell. [ m/s ]
-- ρ : The density of the cell. [ kg/m³ ]
-- Δx: The length of the cell. [ m ]
-- u : The velocity of the cell boundaries, with superscripts - and + referring to the left and right boundaries, respectively. [ m/s ]
+- c : The speed of sound in the zone. [ m/s ]
+- ρ : The density of the zone. [ kg/m³ ]
+- Δx: The length of the zone. [ m ]
+- u : The velocity of the zone boundaries, with superscripts - and + referring to the left and right boundaries, respectively. [ m/s ]
 
 # Notes
 - This artificial viscosity is based on the method described by Wilkins (1980), which in turn relies upon the methods of Von Neumann and Richtmyer (1950) and Landschoff (1955). This functions by adding the artificial viscosity computed by this function to the pressure field during the `Momentum!()` and `Energy!()` updates.
-- The calculation of artificial viscosity requires a gradient of velocity, ∂u/∂x. This is computed using `∂∂x_CellEdgeToCellCenter()`. See the documentation of that function for details on the numerical method used for gradient calculation.
+- The calculation of artificial viscosity requires a gradient of velocity, ∂u/∂x. This is computed using `∂∂x_ZoneEdgeToZoneCenter()`. See the documentation of that function for details on the numerical method used for gradient calculation.
 - This function returns zero if `∂u/∂x > 0`, which will be the case for regions where the flow is expanding. This is done to restrict artificial viscosity only to regions of compression.
 """
 function artificial_viscosity( Cᵥ::T, c::T, ρ::T, Δx::T, u₋::T, u₊::T ) where { T <: AbstractFloat }
-    ∂u∂x = ∂∂x_CellEdgeToCellCenter( u₋, u₊, Δx ) # Computing ∂u∂x to save some computational expense below as we use the result twice
+    ∂u∂x = ∂∂x_ZoneEdgeToZoneCenter( u₋, u₊, Δx ) # Computing ∂u∂x to save some computational expense below as we use the result twice
     if ( ∂u∂x < 0.0 ) # Only apply viscosity in regions of compression so we restrict this to shocks
         # This is the method described by Wilkins (1980) which is in turn a combination of the methods of Von Neumann and Richtmyer (1950) and Landschoff (1955)
         return -ρ * ( Cᵥ * Δx ).^2 * ∂u∂x * abs( ∂u∂x ) + 0.5 * Cᵥ * ρ * c * Δx * abs( ∂u∂x )
@@ -31,7 +31,7 @@ end
 """
     artificial_viscosity!( state::Simulation{T} ) where { T <: AbstractFloat }
 
-Compute the value of artificial viscosity at every cell interface.
+Compute the value of artificial viscosity at every zone interface.
 
 # Returns
 `nothing`. The input `state` is modified by this function.
@@ -40,7 +40,7 @@ Compute the value of artificial viscosity at every cell interface.
 - state: A `Simulation{T}` representing the current problem state that will be used to compute the artificial viscosity term.
 
 # Notes
-- This function iterates through every cell interface and calls `artificial_viscosity()` to update the `viscosity` state variable. See the documentation for `artificial_viscosity()` for details on how artificial viscosity is calculated.
+- This function iterates through every zone interface and calls `artificial_viscosity()` to update the `viscosity` state variable. See the documentation for `artificial_viscosity()` for details on how artificial viscosity is calculated.
 
 # Side Effects
 - Modifies the values in the `state.viscosity` vector in-place.
@@ -54,33 +54,33 @@ end
 """
     artificial_conductivity( Cₖ::T, u::T, c₋::T, e₋::T, Δx₋::T, c₊::T, e₊::T, Δx₊::T ) where { T <: AbstractFloat }
 
-Compute an artificial flux of internal energy across a cell interface.
+Compute an artificial flux of internal energy across a zone interface.
 
 # Returns
-A value of type `T` representing the artifical flux of internal energy across a cell boundary.
+A value of type `T` representing the artifical flux of internal energy across a zone boundary.
 
 # Arguments
 - Cₖ: An O(1) coefficient to control the strength of the artificial conductivity. [ ⋅ ]
-- u : The velocity of the cell interface. [ m/s ]
-- c : The speed of sound, where superscript - and + refer to the cells to the left and right of the cell interface, respectively. [ m/s ]
-- e : The internal energy per unit mass. Superscript - and + refer to the cells to the left and right of the cell interface, respectively. [ m²/s² ]
-- Δx: Length of the cell. Superscript - and + refer to the cells to the left and right of the cell interface, respectively. [ m ]
+- u : The velocity of the zone interface. [ m/s ]
+- c : The speed of sound, where superscript - and + refer to the zones to the left and right of the zone interface, respectively. [ m/s ]
+- e : The internal energy per unit mass. Superscript - and + refer to the zones to the left and right of the zone interface, respectively. [ m²/s² ]
+- Δx: Length of the zone. Superscript - and + refer to the zones to the left and right of the zone interface, respectively. [ m ]
 
 # Notes
-The artificial conductivity is modeled as a Fickian diffusivity. That is, the flux of energy across a cell boundary, fₑ, is described by
+The artificial conductivity is modeled as a Fickian diffusivity. That is, the flux of energy across a zone boundary, fₑ, is described by
     fₑ = -κ ∂e/∂x
 where e is the internal energy per unit mass and κ is the (artificial) conductivity coefficient.
 The gradient of internal energy is treated with a simple forward finite difference. The artificial conductivity coefficient is modeled as
     κ = Cₖ * cₘ * Δx
 where
 - Cₖ an O(1) coefficient.
-- cₘ  is a characteristic velocity taken to be max(c̄±u, c̄), where c̄=0.5*(c₋+c₊) is the average speed of sound of the two adjacent cells and u is the velocity of the cell interface. 
-- Δx is the distance between the cell centers
+- cₘ  is a characteristic velocity taken to be max(c̄±u, c̄), where c̄=0.5*(c₋+c₊) is the average speed of sound of the two adjacent zones and u is the velocity of the zone interface. 
+- Δx is the distance between the zone centers
 By convention, this leads to a positive flux if energy is diffusing in the positive x direction, and negative if it is diffusing in the negative x direction.
 """
 function artificial_conductivity( Cₖ::T, u::T, c₋::T, e₋::T, Δx₋::T, c₊::T, e₊::T, Δx₊::T ) where { T <: AbstractFloat }
-    ∇e = ∂∂x_CellCenterToCellEdge( e₋, e₊, Δx₋, Δx₊ ) # The gradient of internal energy between cells. Positive when the energy flux is rightwards
-    c̄ = 0.5 * ( c₋ + c₊ ) # The average speed of sound between the two cells
+    ∇e = ∂∂x_ZoneCenterToZoneEdge( e₋, e₊, Δx₋, Δx₊ ) # The gradient of internal energy between zones. Positive when the energy flux is rightwards
+    c̄ = 0.5 * ( c₋ + c₊ ) # The average speed of sound between the two zones
     cₘ = max( c̄ + u, c̄, c̄ + u ) # A diffusion speed, set as the maximum wave propagation speed
     κ = Cₖ * cₘ * 0.5 * ( Δx₋ + Δx₊ ) # Artificial conduction coefficient
     return -κ * ∇e
@@ -89,7 +89,7 @@ end
 """
     artificial_conductivity!( state::Simulation{T} ) where { T <: AbstractFloat }
 
-Compute the artificial flux of energy across each cell interface in the simulation. 
+Compute the artificial flux of energy across each zone interface in the simulation. 
 
 # Returns
 `nothing`. Modifies the `state` argument in-place. 
@@ -98,7 +98,7 @@ Compute the artificial flux of energy across each cell interface in the simulati
 - state: A `Simulation{T}` object representing the problem state.
 
 # Notes
-This function calls `artificial_conductivity()` at each cell interface in the problem. See the documentation of that function for further detail on the calculation that is performed.
+This function calls `artificial_conductivity()` at each zone interface in the problem. See the documentation of that function for further detail on the calculation that is performed.
 
 # Side Effects
 - Modifies the values in the `state.energy_flux` vector in-place.

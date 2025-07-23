@@ -117,7 +117,7 @@ There are also more complex options to advance by a single timestep or a fixed n
 
 ## Timestep controls
 
-By default, the simulation utilizes adaptive timestepping. The timestep is computed at every cycle based on the time it would take an acoustic wave moving at the local speed of sound, `c`, to propagate across a cell of length `Δx`. The minimum of this value over the entire domain is then multiplied by the supplied `CFL` to determine the timestep for the next cycle. This approach is chosen as the default to aid in stability as the timestep will be reduced to accomodate regions with densely-clustered cells.
+By default, the simulation utilizes adaptive timestepping. The timestep is computed at every cycle based on the time it would take an acoustic wave moving at the local speed of sound, `c`, to propagate across a zone of length `Δx`. The minimum of this value over the entire domain is then multiplied by the supplied `CFL` to determine the timestep for the next cycle. This approach is chosen as the default to aid in stability as the timestep will be reduced to accomodate regions with densely-clustered zones.
 
 If you would prefer to have a fixed timestep, each of the time-advancing functions (`AdvanceToTime`, `AdvanceOneCycle`, `AdvanceNCycles`) support an optional `Δt` argument. If supplied, this value will be utilized in place of the adaptive timestep, and the function used to determine the timestep will be bypassed. Be aware, however, that this will likely require decreasing the CFL number or increasing artificial viscosity/conductivity to maintain stability. For more information, see the documentation of each function.
 
@@ -144,7 +144,7 @@ Much of the methodology in this package is based upon the work by von Neumann an
 
 This package solves the 1D Euler equations in Lagrangian form. That is, the equations are solved on a mesh that moves with the flow. The form of the equations is given by Equations 3 - 5 in [1]. Within this packge, the spatial evolution of the equations is treated separately from the temporal evolution. That is, the equations are re-organized into a form where the time derivative is on the left hand side of the equation, and the spatial derivatives are on the right.
 
-The equations are solved on a staggered mesh, with thermodynamic variables (energy, pressure, density) located at cell centers, and dynamic variables (velocity) located at cell edges.
+The equations are solved on a staggered mesh, with thermodynamic variables (energy, pressure, density) located at zone centers, and dynamic variables (velocity) located at zone edges.
 
 Practically, the equations are not evolved continuously, but rather over fixed time intervals. Each time interval is referred to as a "cycle". The amount of time that elapses in a given cycle is controlled by the time step, and the methodology for how the time step is determined is described in the Timestep Controls section, above.
 
@@ -152,9 +152,9 @@ Within each cycle, a series of steps take place in order to advance the solution
 1. The right hand side of the momentum equation (Eq. 3 in [1]) is evaluated using the values of parameters at the current time
 1. The right hand size of the energy equation (Eq. 4 in [1]) is evaluated using the values of parameters at the current time
 1. The momentum and energy equations are advanced to the new time (`t + Δt`) using a first-order forward Euler integration
-1. The edges of each cell are moved according to an average of the velocity at that cell edge from the current time (`t`) and new time (`t + Δt`), times the time step.
-1. The new density of each cell is determined by taking the mass of each cell (assumed to be fixed due to the Lagrangian reference frame) divided by the cell size at the new time.
-1. The pressure in each cell is similarly updated using the internal energy and density at the new time.
+1. The edges of each zone are moved according to an average of the velocity at that zone edge from the current time (`t`) and new time (`t + Δt`), times the time step.
+1. The new density of each zone is determined by taking the mass of each zone (assumed to be fixed due to the Lagrangian reference frame) divided by the zone size at the new time.
+1. The pressure in each zone is similarly updated using the internal energy and density at the new time.
 1. New values of artificial viscosity and conductivity are calculated from the complete state at the new time.
 1. The cycle is complete
 
@@ -178,9 +178,9 @@ Just because something is included here does not mean it is being actively worke
 - Support for RANS models to describe, e.g., mixing across a material interface
   - Will require treatment of mixtures, including updating calls to the equation of state to calculate mixture properties
   - Will probably require tracking of individual species mass fraction fields, which is not currently supported.
-- Support for an adaptable initial distribution of grid points, with the hope that there is less difference between the timestep requirements of the smallest and largest cells.
-  - This could, for example, use the supplied initial condition functions to compute a local speed of sound and adjust the location of the next cell based on that number.
-  - The downside is that information on, for example, the cell that corresponds to a given initial location is a bit harder to track
+- Support for an adaptable initial distribution of grid points, with the hope that there is less difference between the timestep requirements of the smallest and largest zones.
+  - This could, for example, use the supplied initial condition functions to compute a local speed of sound and adjust the location of the next zone based on that number.
+  - The downside is that information on, for example, the zone that corresponds to a given initial location is a bit harder to track
   - This is potentially addressed by introducing passive tracers that move with the local velocity
 - Support for passive tracer particles
   - Particles that move exactly with the local flow velocity. This is potentially useful for things like interface tracking given the Lagrangian nature of the solution.

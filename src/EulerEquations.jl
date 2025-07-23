@@ -1,34 +1,34 @@
 """
     Momentum( ρ₋::T, P₋::T, Δx₋::T, ρ₊::T, P₊::T, Δx₊::T ) where { T <: AbstractFloat }
 
-Compute the right hand side of the momentum equation at a cell interface. See the Notes section for information on the equation being solved.
+Compute the right hand side of the momentum equation at a zone interface. See the Notes section for information on the equation being solved.
 
 # Returns
-A scalar of type `T` representing the rate of change of velocity of a cell interface over time.
+A scalar of type `T` representing the rate of change of velocity of a zone interface over time.
 
 # Arguments
-- ρ : The density of the cell. [ kg/m³ ]
-- P : The pressure of the cell [ kg/(m⋅s²) ]
-- Δx: The length of the cell. [ m ]
+- ρ : The density of the zone. [ kg/m³ ]
+- P : The pressure of the zone [ kg/(m⋅s²) ]
+- Δx: The length of the zone. [ m ]
 
-For each of these parameters, a - subscript refers to the cell to the left of the cell interface and a + subscript refers to the cell to the right of the cell interface.
+For each of these parameters, a - subscript refers to the zone to the left of the zone interface and a + subscript refers to the zone to the right of the zone interface.
 
 # Notes
 The governing equation solved in this function is:
     ∂u/∂t = (1/ρ) * ∂P/∂x
-Here, ρ is taken to be the average of the densities in the cells to the left and right of the interface.
+Here, ρ is taken to be the average of the densities in the zones to the left and right of the interface.
 The pressure term is augmented with an artifical viscosity per the method of Von Neumann and Richtmyer (1950). This artificial viscosity is added in the `Momentum!()` function. See the documentation of that function for further details.
 """
 function Momentum( ρ₋::T, P₋::T, Δx₋::T, ρ₊::T, P₊::T, Δx₊::T ) where { T <: AbstractFloat }
-    ∂p∂x = ∂∂x_CellCenterToCellEdge( P₋, P₊, Δx₋, Δx₊ ) # Derivative of pressure, evaluated at the cell boundary
-    ρ̄ = 0.5 * ( ρ₋ + ρ₊ ) # Compute an average density from the cells to the left and the right of the boundary
+    ∂p∂x = ∂∂x_ZoneCenterToZoneEdge( P₋, P₊, Δx₋, Δx₊ ) # Derivative of pressure, evaluated at the zone boundary
+    ρ̄ = 0.5 * ( ρ₋ + ρ₊ ) # Compute an average density from the zones to the left and the right of the boundary
     return - ∂p∂x / ρ̄ 
 end
 
 """
     Momentum!( output::Simulation{T}, input::Simulation{T} ) where { T <: AbstractFloat }
 
-Compute the right hand side of the momentum equation for every cell interface. 
+Compute the right hand side of the momentum equation for every zone interface. 
 
 # Returns
 `nothing`. The `output` argument is modified in-place.
@@ -53,31 +53,31 @@ end
 """
     Energy( ρ::T, P::T, Δx::T, u₋::T, u₊::T, q₋::T, q₊::T ) where { T <: AbstractFloat }
 
-Compute the right hand side of the energy equation in a cell. See the Notes section for the specific equations that are solved.
+Compute the right hand side of the energy equation in a zone. See the Notes section for the specific equations that are solved.
 
 # Returns
-A scalar of type `T` representing the rate of change of internal energy inside the cell.
+A scalar of type `T` representing the rate of change of internal energy inside the zone.
 
 # Arguments
-- ρ : The density of the cell, [ kg/m³ ]
-- P : The pressure of the cell, [ kg/(m⋅s²) ]
-- Δx: The length of the cell, [ m ]
-- u : The velocity of the cell edges on the (-): left and (+): right of the cell, [ m/s ]
-- q : The (artificial) flux of internal energy across the (-): left and (+): right cell edges, [ m³/s³ ] 
+- ρ : The density of the zone, [ kg/m³ ]
+- P : The pressure of the zone, [ kg/(m⋅s²) ]
+- Δx: The length of the zone, [ m ]
+- u : The velocity of the zone edges on the (-): left and (+): right of the zone, [ m/s ]
+- q : The (artificial) flux of internal energy across the (-): left and (+): right zone edges, [ m³/s³ ] 
 
 # Notes:
 The governing equation solved in this function is
     ∂e/∂t = - ( P / ρ ) * ∂u/∂x + ∑q
 """
 function Energy( ρ::T, P::T, Δx::T, u₋::T, u₊::T, q₋::T, q₊::T ) where { T <: AbstractFloat }
-    ∂u∂x = ∂∂x_CellEdgeToCellCenter( u₋, u₊, Δx )
+    ∂u∂x = ∂∂x_ZoneEdgeToZoneCenter( u₋, u₊, Δx )
     return -( P / ρ ) * ∂u∂x + ( q₋ - q₊ ) / Δx
 end
 
 """
     Energy!( output::Simulation{T}, input::Simulation{T} ) where { T <: AbstractFloat }
 
-Compute the right hand side of the energy equation for every cell. 
+Compute the right hand side of the energy equation for every zone. 
 
 # Returns
 `nothing`. The `output` argument is modified in-place.

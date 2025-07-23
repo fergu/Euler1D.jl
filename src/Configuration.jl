@@ -15,7 +15,7 @@ function InitializeSimulation( parameters::Dict{String, Any} )
     # We'll be using mutating functions on the parameters dictionary, so we make a copy to avoid mutating the user's dictionary
     internal_parameters = deepcopy( parameters ) 
 
-    # Get the number of grid cells
+    # Get the number of grid zones
     number_of_zones = zero(UInt)
     try
         input_number_of_zones = pop!( internal_parameters, "number_of_zones" )

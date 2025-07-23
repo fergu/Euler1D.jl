@@ -1,14 +1,14 @@
 """
     EOS_Density( mass::T, Δx::T ) where { T <: AbstractFloat } = mass / Δx
 
-Compute the density of the fluid in a cell.
+Compute the density of the fluid in a zone.
 
 # Returns
-A scalar of type `T` representing the density of a cell.
+A scalar of type `T` representing the density of a zone.
 
 # Arguments
-- mass: The total mass contained within the cell. [ kg ]
-- Δx: The size of the cell. [ m ]
+- mass: The total mass contained within the zone. [ kg ]
+- Δx: The size of the zone. [ m ]
 
 # Notes
 Density is calculated as:
@@ -20,7 +20,7 @@ EOS_Density( mass::T, Δx::T ) where { T <: AbstractFloat } = mass / Δx
 """
     EOS_Density!( simulation::Simulation{T} ) where { T <: AbstractFloat }
 
-Update all cell densities.
+Update all zone densities.
 
 # Returns
 `nothing`. Modifies the `simulation` input in-place. See the Side Effects section for further detail.
@@ -29,7 +29,7 @@ Update all cell densities.
 - simulation: A `Simulation{T}` representing the simulation state.
 
 # Notes
-Calls `EOS_Density` to compute the density in each cell. See the documentation of that function for further details.
+Calls `EOS_Density` to compute the density in each zone. See the documentation of that function for further details.
 
 # Side Effects
 - Modifies the values in the `simulation.density` vector in-place
@@ -44,17 +44,17 @@ end
     EOS_Pressure( γ::T, ρ::T, e::T ) where { T <: AbstractFloat }
     EOS_Pressure( γ::T, mass::T, Δx::T, e::T ) where { T <: AbstractFloat }
 
-Compute the pressure of a cell using an ideal gas equation of state.
+Compute the pressure of a zone using an ideal gas equation of state.
 
 # Returns
-A scalar of type `T` representing the pressure within the cell.
+A scalar of type `T` representing the pressure within the zone.
 
 # Arguments
-- γ   : The ratio of specific heats of the fluid in the cell. [ ⋅ ]
-- ρ   : The density of the cell. [ kg/m³ ]
-- mass: The total mass contained within the cell. [ kg ]
-- Δx  : The size of the cell. [ m ]
-- e   : The internal energy per unit mass of the cell. [ m²/s² ]
+- γ   : The ratio of specific heats of the fluid in the zone. [ ⋅ ]
+- ρ   : The density of the zone. [ kg/m³ ]
+- mass: The total mass contained within the zone. [ kg ]
+- Δx  : The size of the zone. [ m ]
+- e   : The internal energy per unit mass of the zone. [ m²/s² ]
 
 # Notes
 The pressure is calculated as:
@@ -67,7 +67,7 @@ EOS_Pressure( γ::T, mass::T, Δx::T, e::T ) where { T <: AbstractFloat } = EOS_
 """
     EOS_Pressure!( simulation::Simulation{T} ) where { T <: AbstractFloat }
 
-Update all cell pressures using an ideal gas equation of state.
+Update all zone pressures using an ideal gas equation of state.
 
 # Returns
 `nothing`. Modifies the `simulation` input in-place. See the Side Effects section for further detail.
@@ -76,7 +76,7 @@ Update all cell pressures using an ideal gas equation of state.
 - simulation: A `Simulation{T}` representing the simulation state.
 
 # Notes
-Calls `EOS_Pressure()` to compute the pressure in each cell. See the documentation of that function for further details.
+Calls `EOS_Pressure()` to compute the pressure in each zone. See the documentation of that function for further details.
 
 # Side Effects
 Modifies the values in the `simulation.pressure` vector in-place.
@@ -91,18 +91,18 @@ end
     EOS_SpeedOfSound( γ::T, P::T, ρ::T ) where { T <: AbstractFloat }
     EOS_SpeedOfSound( γ::T, e::T, mass::T, Δx::T ) where { T <: AbstractFloat }
 
-Compute the speed of sound in a cell using an ideal gas equation of state.
+Compute the speed of sound in a zone using an ideal gas equation of state.
 
 # Returns
-A scalar of type `T` representing the speed of sound in the cell.
+A scalar of type `T` representing the speed of sound in the zone.
 
 # Arguments
-- γ: The ratio of specific heats in the cell. [ ⋅ ]
-- e: The internal energy per unit mass in the cell. [ m²/s² ]
-- P: The pressure in the cell. [ kg/(m⋅s²) ]
-- ρ: The density of the fluid in the cell. [ kg/m³ ]
-- mass: The mass contained in the cell. [ kg ]
-- Δx: The length of the cell. [ m ]
+- γ: The ratio of specific heats in the zone. [ ⋅ ]
+- e: The internal energy per unit mass in the zone. [ m²/s² ]
+- P: The pressure in the zone. [ kg/(m⋅s²) ]
+- ρ: The density of the fluid in the zone. [ kg/m³ ]
+- mass: The mass contained in the zone. [ kg ]
+- Δx: The length of the zone. [ m ]
 
 # Notes
 The speed of sound is calculated as:
@@ -124,7 +124,7 @@ Update all speed of sound values using an ideal gas equation of state.
 - simulation: A `Simulation{T}` representing the simulation state.
 
 # Notes
-Calls `EOS_SpeedOfSound()` to calculate the speed of sound in each cell. See the documentation of that function for further details.
+Calls `EOS_SpeedOfSound()` to calculate the speed of sound in each zone. See the documentation of that function for further details.
 
 # Side Effects
 Modifies the values in the `simulation.speedofsound` vector in-place.
@@ -147,7 +147,7 @@ Update all densities, pressures, and speeds of sound using the equation of state
 - simulation: A `Simulation{T}` representing the simulation state.
 
 # Notes
-Calls `EOS_Density!()`, `EOS_Pressure!()`, and `EOS_SpeedOfSound!()` to compute the density, pressure, and speed of sound in each cell respectively. See the documentation of those functions for further details.
+Calls `EOS_Density!()`, `EOS_Pressure!()`, and `EOS_SpeedOfSound!()` to compute the density, pressure, and speed of sound in each zone respectively. See the documentation of those functions for further details.
 
 # Side Effects
 - Modifies the values in the `simulation.density` vector in-place.
@@ -156,11 +156,11 @@ Calls `EOS_Density!()`, `EOS_Pressure!()`, and `EOS_SpeedOfSound!()` to compute 
 """
 function EquationOfState!( simulation::Simulation{T} ) where { T <: AbstractFloat }
     # Update the solution state using the equation of state together with the state variables
-    # Compute the density of each cell
+    # Compute the density of each zone
     EOS_Density!( simulation )
-    # Compute pressure of each cell
+    # Compute pressure of each zone
     EOS_Pressure!( simulation )
-    # Compute the speed of sound of each cell
+    # Compute the speed of sound of each zone
     EOS_SpeedOfSound!( simulation )
 end
 
