@@ -90,7 +90,7 @@ At this point, `init_state` is a `Simulation{T}` type (where `T` is some concret
 
 The simulation can then be advanced to the final time using the `AdvanceToTime` function, where `exact=true` tells the code to adjust the final timestep to end as close as possible to the final time:
 ```julia
-end_state = AdvanceToTime( init_state, init_state.tₑ; exact=true )
+end_state = AdvanceToTime( init_state, init_state.t₁; exact=true )
 ```
 
 If you want to have more complex output to, for example, get the problem state every 0.01 seconds, you might consider a slightly more complex approach:
@@ -100,7 +100,7 @@ function simulate( init_state::Simulation{T} ) where { T <: AbstractFloat }
     next_plot = init_state.t₀ + plot_Δt
     new_state = deepcopy(init_state) # This is our output. We want to use a copy of the input.
 
-    while ( new_state.time.x < end_time )
+    while ( new_state.time.x < init_state.t₁ )
         new_state = AdvanceToTime( new_state, next_plot; exact=true ) # Advance to t=next_plot
         # Do something with the data, such as plot, save to file, etc
         # ...
