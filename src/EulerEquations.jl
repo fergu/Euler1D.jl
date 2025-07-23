@@ -46,7 +46,7 @@ The artificial viscosity term is added to the pressure field during the call to 
 """
 function Momentum!( output::Simulation{T}, input::Simulation{T} ) where { T <: AbstractFloat }
     for i in range( 2, input.nedges - 1 )
-        output.∂u∂t[i] = Momentum( input.density[i-1], input.pressure[i-1] + input.viscosity[i-1], input.Δx[i-1], input.density[i], input.pressure[i] + input.viscosity[i], input.Δx[i] )
+        output.∂u∂t[i] = Momentum( input.density[i-1], input.pressure[i-1] + input.viscosity[i-1], input.zone_length[i-1], input.density[i], input.pressure[i] + input.viscosity[i], input.zone_length[i] )
     end
 end
 
@@ -92,6 +92,6 @@ Compute the right hand side of the energy equation for every cell.
 """
 function Energy!( output::Simulation{T}, input::Simulation{T} ) where { T <: AbstractFloat }
     for i in range( 1, input.nzones )
-        output.∂e∂t[i] = Energy( input.density[i], input.pressure[i] + input.viscosity[i], input.Δx[i], input.velocity[i], input.velocity[i+1], input.energy_flux[i], input.energy_flux[i+1] )
+        output.∂e∂t[i] = Energy( input.density[i], input.pressure[i] + input.viscosity[i], input.zone_length[i], input.velocity[i], input.velocity[i+1], input.energy_flux[i], input.energy_flux[i+1] )
     end
 end

@@ -38,11 +38,15 @@ function cycle!( output::Simulation{T}, input::Simulation{T}, Δt::T ) where { T
     output.intenergy .= input.intenergy .+ Δt .* output.∂e∂t
     # Next we update the position of each cell edge
     for i in range( 1, output.nedges )
-        output.x[i] = input.x[i] + Δt * 0.5 * ( input.velocity[i] + output.velocity[i] )
+        output.zone_edge[i] = input.zone_edge[i] + Δt * 0.5 * ( input.velocity[i] + output.velocity[i] )
     end
-    # Now update the cell sizes
+    # Re-compute the location of the zone centers
+    for i in 1:output.nzones
+        output.zone_center[i] = 0.5 * ( output.zone_edge[i] + output.zone_edge[i+1] )
+    end
+    # Now update the zone sizes
     for i in range( 1, output.nzones )
-        output.Δx[i] = output.x[i+1] - output.x[i]
+        output.zone_length[i] = output.zone_edge[i+1] - output.zone_edge[i]
     end
     # Now update derived quantities using the equation of state
     EquationOfState!( output )

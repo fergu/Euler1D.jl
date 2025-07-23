@@ -47,7 +47,7 @@ Compute the value of artificial viscosity at every cell interface.
 """
 function artificial_viscosity!( state::Simulation{T} ) where { T <: AbstractFloat }
     for i in 1:state.nzones
-        state.viscosity[i] = artificial_viscosity( state.Cᵥ, state.speedofsound[i], state.density[i], state.Δx[i], state.velocity[i], state.velocity[i+1] )
+        state.viscosity[i] = artificial_viscosity( state.Cᵥ, state.speedofsound[i], state.density[i], state.zone_length[i], state.velocity[i], state.velocity[i+1] )
     end
 end
 
@@ -105,7 +105,7 @@ This function calls `artificial_conductivity()` at each cell interface in the pr
 """
 function artificial_conductivity!( state::Simulation{T} ) where { T <: AbstractFloat }
     for i in 1:state.nzones-1
-        state.energy_flux[i+1] = artificial_conductivity( state.Cₖ, state.velocity[i+1], state.speedofsound[i], state.intenergy[i], state.Δx[i], state.speedofsound[i+1], state.intenergy[i+1], state.Δx[i+1] )
+        state.energy_flux[i+1] = artificial_conductivity( state.Cₖ, state.velocity[i+1], state.speedofsound[i], state.intenergy[i], state.zone_length[i], state.speedofsound[i+1], state.intenergy[i+1], state.zone_length[i+1] )
     end
 end
 

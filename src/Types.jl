@@ -46,9 +46,10 @@ struct Simulation{T}
     cycles::Base.RefValue{UInt}         # The number of cycles performed so far
     min_Δt::T                           # The minimum allowable Δt. Simulation will halt if Δt goes below this value
     max_cycles::UInt                    # The maximum allowable number of cycles. Simulation will halt if cycles goes above this value
-    # Cell Positions
-    x::Vector{T}                        # Position of the cell edges [m]
-    Δx::Vector{T}                       # Spacing between the cells [m]
+    # Zone Positions
+    zone_edge::Vector{T}                # Position of the zone edges [m]
+    zone_center::Vector{T}              # Position of the zone centers [m]
+    zone_length::Vector{T}              # Length of the zones [m]
     # Fluid properties (constant as a function of time)
     gamma::Vector{T}                    # Ratio of specific heats of each cell [⋅]
     mass::Vector{T}                     # Mass of each cell [kg]

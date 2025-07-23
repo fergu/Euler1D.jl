@@ -36,7 +36,7 @@ Calls `EOS_Density` to compute the density in each cell. See the documentation o
 """
 function EOS_Density!( simulation::Simulation{T} ) where { T <: AbstractFloat }
     @inbounds for i in 1:simulation.nzones
-        simulation.density[i] = EOS_Density( simulation.mass[i], simulation.Δx[i] )
+        simulation.density[i] = EOS_Density( simulation.mass[i], simulation.zone_length[i] )
     end
 end
 
@@ -83,7 +83,7 @@ Modifies the values in the `simulation.pressure` vector in-place.
 """
 function EOS_Pressure!( simulation::Simulation{T} ) where { T <: AbstractFloat }
     @inbounds for i in 1:simulation.nzones
-        simulation.pressure[i] = EOS_Pressure( simulation.gamma[i], simulation.mass[i], simulation.Δx[i], simulation.intenergy[i] )
+        simulation.pressure[i] = EOS_Pressure( simulation.gamma[i], simulation.mass[i], simulation.zone_length[i], simulation.intenergy[i] )
     end
 end
 
@@ -131,7 +131,7 @@ Modifies the values in the `simulation.speedofsound` vector in-place.
 """
 function EOS_SpeedOfSound!( simulation::Simulation{T} ) where { T <: AbstractFloat }
     @inbounds for i in 1:simulation.nzones
-        simulation.speedofsound[i] = EOS_SpeedOfSound( simulation.gamma[i], simulation.intenergy[i], simulation.mass[i], simulation.Δx[i] )
+        simulation.speedofsound[i] = EOS_SpeedOfSound( simulation.gamma[i], simulation.intenergy[i], simulation.mass[i], simulation.zone_length[i] )
     end
 end
 

@@ -53,7 +53,7 @@ A `Simulation{T}` representing the state at the end of the final cycle
 - The current simulation time is determined by the `Simulation` field `state.time`. If `state.time > stoptime`, no steps will be taken.
 - This function allocates two `deepcopy()`s of the input state and returns the copy corresponding to the final state.
 - This function simply calls `AdvanceOneCycle!()` repeatedly until the simulation time reaches `stoptime`. The primary advantage to using this function as opposed to `AdvanceOneCycle()` (or `AdvanceNCycles()`) is that various backing arrays are pre-allocated to improve speed.
-- The timestep size, Δt, is determined for each cycle based on the minimum time for an acoustic wave to traverse a cell. See the documentation for `CalculateTimestepSize()` for further details. 
+- The timestep size, Δt, is determined for each cycle based on the minimum time for an acoustic wave to traverse a zone. See the documentation for `CalculateTimestepSize()` for further details. 
 - If `exact=true`, the timestep of the final cycle is adjusted so that the time of the final state is as close as possible to `stoptime`.
 """
 function AdvanceToTime( state::Simulation{T}, stoptime::T; exact::Bool=false ) where { T <: AbstractFloat }
@@ -109,7 +109,7 @@ Advance the simulation by one cycle.
 - input: A `Simulation{T}` representing the simulation state at the start of the cycle
 
 # Notes
-- The timestep size, Δt, is determined based on the minimum time for an acoustic wave to traverse a cell. See `CalculateTimestepSize()` for further details.
+- The timestep size, Δt, is determined based on the minimum time for an acoustic wave to traverse a zone. See `CalculateTimestepSize()` for further details.
 
 # Side Effects
 - All fields of `output` are modified in-place.
@@ -153,7 +153,7 @@ Advance the simulation by one cycle.
 
 # Notes
 - This function allocates a `deepcopy()` of the input state and returns the copy.
-- The timestep size, Δt, is determined based on the minimum time for an acoustic wave to traverse a cell. See `CalculateTimestepSize()` for further details.
+- The timestep size, Δt, is determined based on the minimum time for an acoustic wave to traverse a zone. See `CalculateTimestepSize()` for further details.
 """
 function AdvanceOneCycle( state::Simulation{T} ) where { T <: AbstractFloat }
     output = deepcopy( state )
@@ -209,7 +209,7 @@ Advance the simulation by `ncycles` cycles with a variable timestep.
 # Notes
 - This function allocates two `deepcopy()`s of the input state and returns the copy corresponding to the final state.
 - This function calls `AdvanceOneCycle!()` a total of `ncycles` times to advance the simulation. The primary advantage to using this function as opposed to `AdvanceOneCycle()` if the number of cycles to advance is known is that various backing arrays are pre-allocated to improve speed.
-- The timestep size, Δt, is determined based on the minimum time for an acoustic wave to traverse a cell. See `CalculateTimestepSize()` for further details.
+- The timestep size, Δt, is determined based on the minimum time for an acoustic wave to traverse a zone. See `CalculateTimestepSize()` for further details.
 """
 function AdvanceNCycles( state::Simulation{T}, ncycles::UInt ) where { T <: AbstractFloat }
     # To start, we'll make two copies of the input state that we'll cycle between to avoid allocations in the actual numerical scheme
@@ -241,8 +241,8 @@ Compute an automatic timestep size for the next simulation cycle based on the cu
 - state: A `Simulation{T}` representing the problem state.
 
 # Notes
-- For each cell, the local speed of sound is computed according to `c = √( γ P / ρ )`, where γ, P, and ρ are the ratio of specific heats, the pressure, and the density of the gas in that zone.
-- The time for an acoustic wave to traverse a cell with length `Δx` is computed as `t = Δx / c`.
+- For each zone, the local speed of sound is computed according to `c = √( γ P / ρ )`, where γ, P, and ρ are the ratio of specific heats, the pressure, and the density of the gas in that zone.
+- The time for an acoustic wave to traverse a zone with length `Δx` is computed as `t = Δx / c`.
 - The minimum traversal time for all zones is multiplied by the user-specified CFL number to obtain the timestep size.
 - Sanity checking for negative zone sizes and small timesteps is performed to detect problem instability.
 """
@@ -251,14 +251,14 @@ function CalculateTimestepSize( state::Simulation{T} ) where { T <: AbstractFloa
     # We therefore want the minimum value of dx / soundspeed
     minΔt = 1.0e6
     for i in range( 1, state.nzones )
-        Δx = state.Δx[i]
+        Δx = state.zone_length[i]
         if ( Δx <= 0.0 )
-            error("Negative cell size detected at x=$(state.x[i]), t=$(state.time.x)")
+            error("Negative zone size detected at x=$(state.x[i]), t=$(state.time.x)")
         end
         c = state.speedofsound[i]
-        Δt = state.Δx[i] / c
+        Δt = Δx / c
         if ( Δt < minΔt )
-            minΔt = state.Δx[i] / c
+            minΔt = Δx / c
         end
     end
     if ( state.CFL * minΔt < state.min_Δt )

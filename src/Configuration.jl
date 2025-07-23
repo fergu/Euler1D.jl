@@ -47,7 +47,7 @@ function InitializeSimulation( parameters::Dict{String, Any} )
     x₁ = pop!( internal_parameters, "end_position" )
     x = collect( range( start=x₀, stop=x₁, length=number_of_zones+1 ) ) # Need to add one to number_of_zones to get number of edges
     Δx = diff( x )
-    xₘ = 0.5 .* ( x[2:end] .+ x[1:end-1] ) # Position of cell centers. This will be passed to the initialization functions for cell-centered quantities
+    xₘ = 0.5 .* ( x[2:end] .+ x[1:end-1] ) # Position of zone centers. This will be passed to the initialization functions for zone-centered quantities
 
     # Get the starting and ending times
     t₀ = pop!( internal_parameters, "start_time" )
@@ -84,24 +84,25 @@ function InitializeSimulation( parameters::Dict{String, Any} )
                             Ref( zero(UInt) ),                      # Number of cycles taken so far, initialized to 0
                             min_Δt,                                 # Minimum timestep size
                             max_cycles,                             # Maximum numer of cycles
-                            x,                                      # Vector of cell edge positions
-                            Δx,                                     # Vector of cell sizes
-                            zeros( number_of_zones ),               # Vector of ratios of specific heats (cell centered)
-                            zeros( number_of_zones ),               # Vector of cell masses (cell centered)
-                            zeros( number_of_zones ),               # Vector of cell densities (cell centered)
-                            zeros( number_of_zones + 1 ),           # Vector of cell edge velocities (edge centered)
-                            zeros( number_of_zones ),               # Vector of cell pressures (cell centered)
-                            zeros( number_of_zones ),               # Vector of cell internal energy (cell centered)
-                            zeros( number_of_zones ),               # Vector of cell speeds of sound (cell centered)
-                            zeros( number_of_zones ),               # Vector of artificial viscosities (cell centered)
+                            x,                                      # Vector of zone edge positions
+                            xₘ,                                     # Vector of zone center positions
+                            Δx,                                     # Vector of zone lengths
+                            zeros( number_of_zones ),               # Vector of ratios of specific heats (zone centered)
+                            zeros( number_of_zones ),               # Vector of zone masses (zone centered)
+                            zeros( number_of_zones ),               # Vector of zone densities (zone centered)
+                            zeros( number_of_zones + 1 ),           # Vector of zone edge velocities (edge centered)
+                            zeros( number_of_zones ),               # Vector of zone pressures (zone centered)
+                            zeros( number_of_zones ),               # Vector of zone internal energy (zone centered)
+                            zeros( number_of_zones ),               # Vector of zone speeds of sound (zone centered)
+                            zeros( number_of_zones ),               # Vector of artificial viscosities (zone centered)
                             zeros( number_of_zones + 1 ),           # Vector of artificial energy conduction (edge centered)
-                            zeros( number_of_zones + 1 ),           # Vector of the acceleration of cell edges (edge centered)
-                            zeros( number_of_zones ),               # Vector of the time rate of change of internal energy of a cell (cell centered)
+                            zeros( number_of_zones + 1 ),           # Vector of the acceleration of zone edges (edge centered)
+                            zeros( number_of_zones ),               # Vector of the time rate of change of internal energy of a zone (zone centered)
                            )
 
     # Now initialize the simulation fields using the supplied functions
-    simulation.gamma .= gamma.( xₘ ) # Ratio of specific heats for each cell
-    simulation.mass .= density.( xₘ ) .* Δx # Mass of each cell. Computed from the density function and the initial cell sizes
+    simulation.gamma .= gamma.( xₘ ) # Ratio of specific heats for each zone
+    simulation.mass .= density.( xₘ ) .* Δx # Mass of each zone. Computed from the density function and the initial zone sizes
     simulation.velocity .= velocity.( x ) # Initial velocity
     simulation.intenergy .= pressure.( xₘ ) ./ ( ( gamma.( xₘ ) .- 1.0 ) .* density.( xₘ ) ) # Compute the initial internal energy assuming an ideal gas EOS
     EquationOfState!( simulation ) # Use the equation of state to update 
