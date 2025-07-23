@@ -30,7 +30,7 @@ julia> Pkg.add("https://www.github.com/fergu/Euler1D.git")
 
 ## A note on data analysis and output
 
-There are numerous packages in the Julia ecosystem to handle plotting (e.g. `Plots.jl`, `Makie.jl`), writing to disk (e.g. `CSV.jl`, `DataFrames.jl`, `HDF5.jl`), and any other data analysis routine that might be desired.The people developing these packages (and others like them) are immensely talented, and one would be well-advised to utilize their hard work if a package with suitable functionality exists.
+There are numerous packages in the Julia ecosystem to handle plotting (e.g. `Plots.jl`, `Makie.jl`), writing to disk (e.g. `CSV.jl`, `DataFrames.jl`, `HDF5.jl`), and any other data analysis routine that might be desired. The people developing these packages (and others like them) are immensely talented, and one would be well-advised to utilize their hard work if a package with suitable functionality exists.
 
 For this reason, this package actively avoids making assumptions about what a user will want to do with the simulation data after the simulation is complete. This means that there is no built-in functionality to plot simulation data, write it to disk, or perform any other sort of postprocessing. Instead, all simulation outputs are simply elementary Julia types (e.g. `Vector{Float64}`), and can be manipulated using the usual built-in Julia methods, or by using any suitable package that provides the required functionality. 
 
