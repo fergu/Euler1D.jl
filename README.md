@@ -36,7 +36,7 @@ For this reason, this package actively avoids making assumptions about what a us
 
 # Usage
 
-At its core, using `Euler1D.jl` relies on a single Julia file to describe simulation setup, running of the simulation, and processing of outputs. Each of these aspects is detailed in the following subsections. 
+At its core, using `Euler1D.jl` relies on a single Julia file to describe simulation setup, running of the simulation, and processing of outputs. Each of these aspects is detailed in the following subsections. Some complete examples of a simulation setup can be found in the `examples` subdirectory.
 
 ## Initialization
 
