@@ -111,6 +111,41 @@ function InitializeSimulation( parameters::Dict{String, Any} )
 end
 
 """
+    UpdateSimulationState!( state::Simulation{T}, gamma::Function, density::Function, velocity::Function, pressure::Function ) where { T <: AbstractFloat }
+
+Update the simulation state using the supplied functions to define a new state. See Notes for information about the expected signature of the functions.
+
+# Returns
+`nothing`. Updates the `state` input in-place.
+
+# Arguments
+- state: A `Simulation{T}` representing the simulation state to be updated
+- gamma: A `Function` that returns the new values of the ratio of specific heats, gamma
+- density: A `Function` that returns the new values of the density
+- velocity: A `Function` that returns the new values of velocity
+- pressure: A `Function` that returns the new values of pressure
+
+# Notes
+Unlike the functions used in initial problem setup, the functions supplied to `UpdateSimulationState` have a slightly different expected signature of
+    ExampleFunction( x::T, oldValue::T ) where { T <: AbstractFloat }
+where `oldValue` will be the current value of the state variable at current position `x` (e.g., the previous value of pressure).
+
+New values of `density` will result in edited cells gaining or losing mass to achieve the desired density without the cell changing size. 
+
+# Side Effects
+- Updates the values stored in the vectors for `state.gamma`, `state.mass`, `state.velocity`, `state.intenergy`, and fields derived from the equation of state in-place.
+"""
+function UpdateSimulationState!( state::Simulation{T}, gamma::Function, density::Function, velocity::Function, pressure::Function ) where { T <: AbstractFloat }
+    new_density = density.( state.zone_center, state.density )
+    new_gamma = gamma.( state.zone_center, state.gamma )
+    state.gamma .= new_gamma
+    state.mass .= new_density .* state.zone_length
+    state.velocity .= velocity.( state.zone_edge, state.velocity )
+    state.intenergy .= pressure.( state.zone_center, state.pressure ) ./ ( ( new_gamma .- 1.0 ) .* new_density )
+    EquationOfState!( state )
+end
+
+"""
     DefaultSimulationParameters()
 
 Return a set of default parameters for a simulation.
@@ -157,4 +192,5 @@ function DefaultSimulationParameters()
 end
 
 export InitializeSimulation
+export UpdateSimulationState!
 export DefaultSimulationParameters
