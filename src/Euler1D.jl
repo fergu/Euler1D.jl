@@ -55,9 +55,9 @@ function cycle!( output::Simulation{T}, input::Simulation{T}, Δt::T ) where { T
     # as well as the new artificial conductivity, also only if the coefficient is nonzero
     !iszero( output.Cₖ ) && artificial_conductivity!( output )
     # Last, update the current simulation time
-    output.time.x = output.time.x + Δt
+    output.time.x = input.time.x + Δt
     output.Δt.x = Δt
-    output.cycles.x = output.cycles.x + 1
+    output.cycles.x = input.cycles.x + 1
     if ( output.cycles.x > output.max_cycles )
         error("Current cycle ($(output.cycles.x)) exceeds maximum number of cycles ($(output.max_cycles)). Exiting.")
     end
