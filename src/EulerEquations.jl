@@ -16,8 +16,8 @@ For each of these parameters, a - subscript refers to the zone to the left of th
 # Notes
 The governing equation solved in this function is:
     ∂u/∂t = (1/ρ) * ∂P/∂x
-Here, ρ is taken to be the average of the densities in the zones to the left and right of the interface.
-The pressure term is augmented with an artifical viscosity per the method of Von Neumann and Richtmyer (1950). This artificial viscosity is added in the `Momentum!()` function. See the documentation of that function for further details.
+Here, ρ is taken to be the average of the densities in the zones to the left and right of the interface, and `∂P/∂x` is computed using [`∂∂x_ZoneCenterToZoneEdge`](@ref).
+If using artificial viscosity per the method of Von Neumann and Richtmyer (1950), the artificial viscosity term should be added to the pressure field.
 """
 function Momentum( ρ₋::T, P₋::T, Δx₋::T, ρ₊::T, P₊::T, Δx₊::T ) where { T <: AbstractFloat }
     ∂p∂x = ∂∂x_ZoneCenterToZoneEdge( P₋, P₊, Δx₋, Δx₊ ) # Derivative of pressure, evaluated at the zone boundary
@@ -38,8 +38,8 @@ Compute the right hand side of the momentum equation for every zone interface.
 - `input`: A `Simulation{T}` object representing the input problem state.
 
 # Notes
-This function calls `Momentum()` to perform the actual calculation. See the documentation of that function for more information.
-The artificial viscosity term is added to the pressure field during the call to `Momentum()`, per the artificial viscosity method of Von Neumann and Richtmyer (1950).
+This function calls [`Momentum()`](@ref) to perform the actual calculation. See the documentation of that function for more information.
+The artificial viscosity term is added to the pressure field during the call to [`Momentum()`](@ref), per the artificial viscosity method of Von Neumann and Richtmyer (1950).
 
 # Side Effects
 - Modifies the values contained in `output.∂u∂t` in-place.
@@ -87,8 +87,8 @@ Compute the right hand side of the energy equation for every zone.
 - `input`: A `Simulation{T}` object representing the input problem state.
 
 # Notes
-- This function calls `Energy()` to perform the actual calculation. See the documentation of that function for more information.
-- The artificial viscosity term is added to the pressure field during the call to `Energy()`, per the artificial viscosity method of Von Neumann and Richtmyer (1950).
+- This function calls [`Energy()`](@ref) to perform the actual calculation. See the documentation of that function for more information.
+- The artificial viscosity term is added to the pressure field during the call to [`Energy()`](@ref), per the artificial viscosity method of Von Neumann and Richtmyer (1950).
 """
 function Energy!( output::Simulation{T}, input::Simulation{T} ) where { T <: AbstractFloat }
     for i in range( 1, input.nzones )

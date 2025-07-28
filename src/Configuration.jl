@@ -1,7 +1,7 @@
 """
     InitializeSimulation( parameters::Dict{String, Any} )
 
-Initialize a simulation with the parameters provided by `parameters`. A default set of `parameters` can be returned from the DefaultSimulationParameters() function.
+Initialize a simulation with the parameters provided by `parameters`. A default set of `parameters` can be returned from the [`DefaultSimulationParameters()`](@ref) function.
 
 # Returns
 A struct of type `Simulation{T}` that describes the current simulation state. The type `T` is determined by the type of the members of `parameters`.
@@ -45,6 +45,9 @@ function InitializeSimulation( parameters::Dict{String, Any} )
     # Generate the grid
     x₀ = pop!( internal_parameters, "start_position" )
     x₁ = pop!( internal_parameters, "end_position" )
+    if ( x₁ ≤ x₀ )
+        error("Parameter `end_position` (=$x₁) must be greater than `start_position` (=$x₀)")
+    end
     x = collect( range( start=x₀, stop=x₁, length=number_of_zones+1 ) ) # Need to add one to number_of_zones to get number of edges
     Δx = diff( x )
     xₘ = 0.5 .* ( x[2:end] .+ x[1:end-1] ) # Position of zone centers. This will be passed to the initialization functions for zone-centered quantities
@@ -52,6 +55,9 @@ function InitializeSimulation( parameters::Dict{String, Any} )
     # Get the starting and ending times
     t₀ = pop!( internal_parameters, "start_time" )
     t₁ = pop!( internal_parameters, "end_time" )
+    if ( t₁ ≤ t₀ )
+        error("End time (=$t₁) must be greater than start time (=$t₀)")
+    end
 
     # Get the initial condition functions
     density = pop!( internal_parameters, "init_density_function" )
@@ -130,10 +136,11 @@ Unlike the functions used in initial problem setup, the functions supplied to `U
     ExampleFunction( x::T, oldValue::T ) where { T <: AbstractFloat }
 where `oldValue` will be the current value of the state variable at current position `x` (e.g., the previous value of pressure).
 
-New values of `density` will result in edited cells gaining or losing mass to achieve the desired density without the cell changing size. 
-
 # Side Effects
 - Updates the values stored in the vectors for `state.gamma`, `state.mass`, `state.velocity`, `state.intenergy`, and fields derived from the equation of state in-place.
+
+!!! warning
+    If the `density` function alters the `state.density` field (that is, it does not just return `oldValue`), mass will be added or removed from a given zone to achieve a specified value of `density` without changing zone size. As a consequence, mass will not be conserved in the system in this case.
 """
 function UpdateSimulationState!( state::Simulation{T}, gamma::Function, density::Function, velocity::Function, pressure::Function ) where { T <: AbstractFloat }
     new_density = density.( state.zone_center, state.density )

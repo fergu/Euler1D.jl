@@ -22,7 +22,7 @@ Perform one timestep (cycle) of the solution process.
 - `Δt`: The size of the timestep. That is, the amount of time the solution is advanced in one cycle.
 
 # Notes
-- This function is generally not intended to be called directly. Instead, use the various time-stepping functions defined in `Timestepping.jl` such as `AdvanceOneCycle()`, `AdvanceNCycles()`, or `AdvanceToTime()`.
+- This function is generally not intended to be called directly. Instead, use the various time-stepping functions defined in `Timestepping.jl` such as [`AdvanceOneCycle()`](@ref), [`AdvanceNCycles()`](@ref), or [`AdvanceToTime()`](@ref).
 - Time integration in this function is performed using a first-order forward Euler scheme.
 
 # Side Effects

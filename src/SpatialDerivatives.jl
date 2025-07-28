@@ -72,7 +72,7 @@ And similarly for the right hand side of the zone:
 
                 = f[i] + 0.5 * ∂f/∂x[i-1/2] * Δx[i]
 
-In both cases, `∂f/∂x[i+1/2]` (or `i-1/2`) can be evaluated using `∂∂x_ZoneEdgeToZoneEdge()`.
+In both cases, `∂f/∂x[i+1/2]` (or `i-1/2`) can be evaluated using [`∂∂x_ZoneEdgeToZoneEdge()`](@ref).
 The derivative is then:
 
     ∂f/∂x[i]    = ( f[i+1/2] - f[i-1/2] ) / ( x[i+1/2] - x[i-1/2] )
@@ -145,7 +145,7 @@ Similarly for the evaluation to the left:
 
             = f[i+1/2] - 0.5 * ∂f/∂x[i] * Δx[i]
 
-The calculation of ∂f/∂x is performed using the ∂∂x_ZoneEdgeToZoneCenter() function.
+The calculation of `∂f/∂x` is performed using [`∂∂x_ZoneEdgeToZoneCenter()`](@ref).
 The derivative evaluated at the central zone edge is therefore
 
     ∂f/dx[i+1/2]    = ( f[i+1] - f[i] ) / ( xₘ[i+1] - xₘ[i] )

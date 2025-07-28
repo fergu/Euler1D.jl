@@ -29,7 +29,7 @@ Update all zone densities.
 - `simulation`: A `Simulation{T}` representing the simulation state.
 
 # Notes
-Calls `EOS_Density` to compute the density in each zone. See the documentation of that function for further details.
+Calls [`EOS_Density()`](@ref) to compute the density in each zone. See the documentation of that function for further details.
 
 # Side Effects
 - Modifies the values in the `simulation.density` vector in-place
@@ -59,7 +59,7 @@ A scalar of type `T` representing the pressure within the zone.
 # Notes
 The pressure is calculated as:
     P = ( γ - 1 ) * ρ * e
-The four-parameter version of this function computes density using EOS_Density( mass, Δx ). See the documentation for that function for further details.
+The four-parameter version of this function computes density using [`EOS_Density()`](@ref). See the documentation for that function for further details.
 """
 EOS_Pressure( γ::T, ρ::T, e::T ) where { T <: AbstractFloat } = ( γ - 1.0 ) * ρ * e
 EOS_Pressure( γ::T, mass::T, Δx::T, e::T ) where { T <: AbstractFloat } = EOS_Pressure( γ, EOS_Density( mass, Δx ), e )
@@ -76,7 +76,7 @@ Update all zone pressures using an ideal gas equation of state.
 - `simulation`: A `Simulation{T}` representing the simulation state.
 
 # Notes
-Calls `EOS_Pressure()` to compute the pressure in each zone. See the documentation of that function for further details.
+Calls [`EOS_Pressure()`](@ref) to compute the pressure in each zone. See the documentation of that function for further details.
 
 # Side Effects
 Modifies the values in the `simulation.pressure` vector in-place.
@@ -107,7 +107,7 @@ A scalar of type `T` representing the speed of sound in the zone.
 # Notes
 The speed of sound is calculated as:
     c = √( γ * P / ρ )
-The four-parameter version of this function computes density using `EOS_Density( mass, Δx )` and pressure using `EOS_Pressure( γ, mass, Δx, e )`. See the documentation of those functions for further details.
+The four-parameter version of this function computes density using [`EOS_Density()`](@ref) and pressure using [`EOS_Pressure()`](@ref). See the documentation of those functions for further details.
 """
 EOS_SpeedOfSound( γ::T, P::T, ρ::T ) where { T <: AbstractFloat } = sqrt( γ * P / ρ )
 EOS_SpeedOfSound( γ::T, e::T, mass::T, Δx::T ) where { T <: AbstractFloat } = EOS_SpeedOfSound( γ, EOS_Pressure( γ, mass, Δx, e ), EOS_Density( mass, Δx ) )
@@ -124,7 +124,7 @@ Update all speed of sound values using an ideal gas equation of state.
 - `simulation`: A `Simulation{T}` representing the simulation state.
 
 # Notes
-Calls `EOS_SpeedOfSound()` to calculate the speed of sound in each zone. See the documentation of that function for further details.
+Calls [`EOS_SpeedOfSound()`](@ref) to calculate the speed of sound in each zone. See the documentation of that function for further details.
 
 # Side Effects
 Modifies the values in the `simulation.speedofsound` vector in-place.
@@ -147,7 +147,7 @@ Update all densities, pressures, and speeds of sound using the equation of state
 - `simulation`: A `Simulation{T}` representing the simulation state.
 
 # Notes
-Calls `EOS_Density!()`, `EOS_Pressure!()`, and `EOS_SpeedOfSound!()` to compute the density, pressure, and speed of sound in each zone respectively. See the documentation of those functions for further details.
+Calls [`EOS_Density!()`](@ref), [`EOS_Pressure!()`](@ref), and [`EOS_SpeedOfSound!()`](@ref) to compute the density, pressure, and speed of sound in each zone respectively. See the documentation of those functions for further details.
 
 # Side Effects
 - Modifies the values in the `simulation.density` vector in-place.

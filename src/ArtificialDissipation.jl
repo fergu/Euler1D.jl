@@ -1,7 +1,7 @@
 """
     artificial_viscosity( Cᵥ::T, c::T, ρ::T, Δx::T, u₋::T, u₊::T ) where { T <: AbstractFloat }
 
-Compute an artificial viscosity at a zone interface. 
+Compute an artificial viscosity within a zone. 
 
 # Returns
 A value of type `T` representing the value of the artificial viscosity.
@@ -14,8 +14,8 @@ A value of type `T` representing the value of the artificial viscosity.
 - `u`: The velocity of the zone boundaries, with superscripts - and + referring to the left and right boundaries, respectively. (Unit: m/s)
 
 # Notes
-- This artificial viscosity is based on the method described by Wilkins (1980), which in turn relies upon the methods of Von Neumann and Richtmyer (1950) and Landschoff (1955). This functions by adding the artificial viscosity computed by this function to the pressure field during the `Momentum!()` and `Energy!()` updates.
-- The calculation of artificial viscosity requires a gradient of velocity, ∂u/∂x. This is computed using `∂∂x_ZoneEdgeToZoneCenter()`. See the documentation of that function for details on the numerical method used for gradient calculation.
+- This artificial viscosity is based on the method described by Wilkins (1980), which in turn relies upon the methods of Von Neumann and Richtmyer (1950) and Landschoff (1955). This functions by adding the artificial viscosity computed by this function to the pressure field during the [`Momentum!()`](@ref) and [`Energy!()`](@ref) updates.
+- The calculation of artificial viscosity requires a gradient of velocity, ∂u/∂x. This is computed using [`∂∂x_ZoneEdgeToZoneCenter()`](@ref). See the documentation of that function for details on the numerical method used for gradient calculation.
 - This function returns zero if `∂u/∂x > 0`, which will be the case for regions where the flow is expanding. This is done to restrict artificial viscosity only to regions of compression.
 """
 function artificial_viscosity( Cᵥ::T, c::T, ρ::T, Δx::T, u₋::T, u₊::T ) where { T <: AbstractFloat }
@@ -31,7 +31,7 @@ end
 """
     artificial_viscosity!( state::Simulation{T} ) where { T <: AbstractFloat }
 
-Compute the value of artificial viscosity at every zone interface.
+Compute the value of artificial viscosity within every zone.
 
 # Returns
 `nothing`. The input `state` is modified by this function.
@@ -40,7 +40,7 @@ Compute the value of artificial viscosity at every zone interface.
 - `state`: A `Simulation{T}` representing the current problem state that will be used to compute the artificial viscosity term.
 
 # Notes
-- This function iterates through every zone interface and calls `artificial_viscosity()` to update the `viscosity` state variable. See the documentation for `artificial_viscosity()` for details on how artificial viscosity is calculated.
+- This function iterates through every zone interface and calls [`artificial_viscosity()`](@ref) to update the `viscosity` state variable. See the documentation for [`artificial_viscosity()`](@ref) for details on how artificial viscosity is calculated.
 
 # Side Effects
 - Modifies the values in the `state.viscosity` vector in-place.
@@ -98,7 +98,7 @@ Compute the artificial flux of energy across each zone interface in the simulati
 - `state`: A `Simulation{T}` object representing the problem state.
 
 # Notes
-This function calls `artificial_conductivity()` at each zone interface in the problem. See the documentation of that function for further detail on the calculation that is performed.
+This function calls [`artificial_conductivity()`](@ref) at each zone interface in the problem. See the documentation of [`artificial_conductivity()`](@ref) for further detail on how artificial conductivity is calculated.
 
 # Side Effects
 - Modifies the values in the `state.energy_flux` vector in-place.
