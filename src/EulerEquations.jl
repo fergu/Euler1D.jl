@@ -7,9 +7,9 @@ Compute the right hand side of the momentum equation at a zone interface. See th
 A scalar of type `T` representing the rate of change of velocity of a zone interface over time.
 
 # Arguments
-- ρ : The density of the zone. [ kg/m³ ]
-- P : The pressure of the zone [ kg/(m⋅s²) ]
-- Δx: The length of the zone. [ m ]
+- ρ : The density of the zone. (Unit: kg/m³)
+- P : The pressure of the zone (Unit: kg/(m⋅s²))
+- Δx: The length of the zone. (Unit: m)
 
 For each of these parameters, a - subscript refers to the zone to the left of the zone interface and a + subscript refers to the zone to the right of the zone interface.
 
@@ -59,11 +59,11 @@ Compute the right hand side of the energy equation in a zone. See the Notes sect
 A scalar of type `T` representing the rate of change of internal energy inside the zone.
 
 # Arguments
-- ρ : The density of the zone, [ kg/m³ ]
-- P : The pressure of the zone, [ kg/(m⋅s²) ]
-- Δx: The length of the zone, [ m ]
-- u : The velocity of the zone edges on the (-): left and (+): right of the zone, [ m/s ]
-- q : The (artificial) flux of internal energy across the (-): left and (+): right zone edges, [ m³/s³ ] 
+- ρ : The density of the zone, (Unit: kg/m³)
+- P : The pressure of the zone, (Unit: kg/(m⋅s²))
+- Δx: The length of the zone, (Unit: m)
+- u : The velocity of the zone edges on the (-): left and (+): right of the zone, (Unit: m/s)
+- q : The (artificial) flux of internal energy across the (-): left and (+): right zone edges, (Unit: m³/s³) 
 
 # Notes:
 The governing equation solved in this function is

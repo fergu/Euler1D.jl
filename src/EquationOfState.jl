@@ -7,8 +7,8 @@ Compute the density of the fluid in a zone.
 A scalar of type `T` representing the density of a zone.
 
 # Arguments
-- mass: The total mass contained within the zone. [ kg ]
-- Δx: The size of the zone. [ m ]
+- mass: The total mass contained within the zone. (Unit: kg)
+- Δx: The size of the zone. (Unit: m)
 
 # Notes
 Density is calculated as:
@@ -50,11 +50,11 @@ Compute the pressure of a zone using an ideal gas equation of state.
 A scalar of type `T` representing the pressure within the zone.
 
 # Arguments
-- γ   : The ratio of specific heats of the fluid in the zone. [ ⋅ ]
-- ρ   : The density of the zone. [ kg/m³ ]
-- mass: The total mass contained within the zone. [ kg ]
-- Δx  : The size of the zone. [ m ]
-- e   : The internal energy per unit mass of the zone. [ m²/s² ]
+- γ   : The ratio of specific heats of the fluid in the zone. (Unit: ⋅)
+- ρ   : The density of the zone. (Unit: kg/m³)
+- mass: The total mass contained within the zone. (Unit: kg)
+- Δx  : The size of the zone. (Unit: m)
+- e   : The internal energy per unit mass of the zone. (Unit: m²/s²)
 
 # Notes
 The pressure is calculated as:
@@ -97,12 +97,12 @@ Compute the speed of sound in a zone using an ideal gas equation of state.
 A scalar of type `T` representing the speed of sound in the zone.
 
 # Arguments
-- γ: The ratio of specific heats in the zone. [ ⋅ ]
-- e: The internal energy per unit mass in the zone. [ m²/s² ]
-- P: The pressure in the zone. [ kg/(m⋅s²) ]
-- ρ: The density of the fluid in the zone. [ kg/m³ ]
-- mass: The mass contained in the zone. [ kg ]
-- Δx: The length of the zone. [ m ]
+- γ: The ratio of specific heats in the zone. (Unit: ⋅)
+- e: The internal energy per unit mass in the zone. (Unit: m²/s²)
+- P: The pressure in the zone. (Unit: kg/(m⋅s²))
+- ρ: The density of the fluid in the zone. (Unit: kg/m³)
+- mass: The mass contained in the zone. (Unit: kg)
+- Δx: The length of the zone. (Unit: m)
 
 # Notes
 The speed of sound is calculated as:

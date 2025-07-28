@@ -8,9 +8,9 @@ A `Simulation{T}` representing the state at the end of the final cycle.
 
 # Arguments
 - input: A `Simulation{T}` representing the simulation state at the start of the first cycle.
-- stoptime: The time to advance to. [ s ]
-- Δt: The timestep size. [ s ]
-- exact: If true, try to stop as close as possible to `stoptime` by adjusting the final timestep size (Default=false)
+- stoptime: The time to advance to. (Unit: s)
+- Δt: The timestep size. (Unit: s)
+- exact: If true, try to stop as close as possible to `stoptime` by adjusting the final timestep size (Default: `false`)
 
 # Notes
 - The current simulation time is determined by the `Simulation` field `state.time`. If `state.time > stoptime`, no steps will be taken.
@@ -46,8 +46,8 @@ A `Simulation{T}` representing the state at the end of the final cycle
 
 # Arguments
 - input: A `Simulation{T}` representing the simulation state at the start of the first cycle.
-- stoptime: The time to advance to. [ s ]
-- exact: If true, try to stop as close as possible to `stoptime` by adjusting the final timestep size (Default=false)
+- stoptime: The time to advance to. (Unit: s)
+- exact: If true, try to stop as close as possible to `stoptime` by adjusting the final timestep size (Default: false)
 
 # Notes
 - The current simulation time is determined by the `Simulation` field `state.time`. If `state.time > stoptime`, no steps will be taken.
@@ -87,7 +87,7 @@ Advance the simulation by one cycle with a timestep of Δt.
 # Arguments
 - output: A `Simulation{T}` that will represent the output state. This will be modified by the function to represent the simulation state after advancing one cycle.
 - input: A `Simulation{T}` that represents the simulation state at the start of the cycle.
-- Δt: The size of the time step. [ s ]
+- Δt: The size of the time step. (Unit: s)
 
 # Side Effects
 - All fields of `output` are modified in-place.
@@ -129,7 +129,7 @@ A `Simulation{T}` representing the state at the end of the cycle
 
 # Arguments
 - input: A `Simulation{T}` representing the simulation state at the start of the cycle.
-- Δt: The size of the time step. [ s ]
+- Δt: The size of the time step. (Unit: s)
 
 # Notes
 - This function allocates a `deepcopy()` of the input state and returns the copy.
@@ -172,7 +172,7 @@ Advance the simulation by `ncycles` cycles with a fixed timestep.
 # Arguments
 - input: A `Simulation{T}` representing the simulation state at the start of the first cycle.
 - ncycles: The number of cycles to advance.
-- Δt: The size of the time step. [ s ]
+- Δt: The size of the time step. (Unit: s)
 
 # Notes
 - This function allocates two `deepcopy()`s of the input state and returns the copy corresponding to the final state.
@@ -204,7 +204,7 @@ Advance the simulation by `ncycles` cycles with a variable timestep.
 
 # Arguments
 - input: A `Simulation{T}` representing the simulation state at the start of the first cycle.
-- ncycles: The number of cycles to advance. [ ⋅ ]
+- ncycles: The number of cycles to advance. (Unit: ⋅)
 
 # Notes
 - This function allocates two `deepcopy()`s of the input state and returns the copy corresponding to the final state.

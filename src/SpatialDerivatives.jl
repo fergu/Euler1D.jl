@@ -12,15 +12,26 @@ A scalar of type `T` representing the value of ∂f/∂x evaluated at the bounda
 
 # Notes
 The derivative is calculated using a first-order forward difference. Functionally,
+
     ∂f/∂x[i+1/2] = ( f[i+1] - f[i] ) / ( xₘ[i+1] - xₘ[i] )
+
 where f is the zone-centered variable and xₘ is the coordinate of the center of the zone
-Since this code is Lagrangian, the location of zone edges is what is tracked, with the zone center computed as xₘ[i] = 0.5 * ( x[i-1/2] + x[i+1/2] )
+Since this code is Lagrangian, the location of zone edges is what is tracked, with the zone center computed as 
+
+    xₘ[i] = 0.5 * ( x[i-1/2] + x[i+1/2] )
+
 Therefore, the denominator above can be shown to be equivalent to
+
     xₘ[i+1] - xₘ[i] = 0.5 * ( x[i+3/2] + x[i+1/2] ) - 0.5 * ( x[i+1/2] + x[i-1/2] )
+
                     = 0.5 * ( x[i+3/2] - x[i+1/2] ) + 0.5 * ( x[i+1/2] - x[i-1/2] )
+
                     = 0.5 * Δx[i+1] + 0.5 * Δx[i]
+
                     = 0.5 * ( Δx[i+1] + Δx[i] )
+
 and thus the derivative can be expressed as
+
     ∂f/∂x = 2.0 * ( f[i+1] - f[i] ) / ( Δx[i+1] + Δx[i] )
 """
 function ∂∂x_ZoneCenterToZoneEdge( f₋::T, f₊::T, Δx₋::T, Δx₊::T ) where { T <: AbstractFloat }
@@ -42,20 +53,32 @@ A scalar of type `T` representing the value of ∂f/∂x evaluated at the center
 # Notes
 This derivative is calculated by first linearly interpolating the zone-centered variables to the left and right zone boundaries of the current zone. These interpolated values are then used to evaluate the derivative at the zone center.
 The interpolated value at the left hand side of the zone is (where xₘ is the midpoint of the zone):
+
     f[i-1/2]    = f[i] + ∂f/∂x[i-1/2] * ( x[i-1/2] - xₘ[i] )
+
                 = f[i] + ∂f/∂x[i-1/2] * ( x[i-1/2] - 0.5 * ( x[i+1/2] + x[i-1/2] ) )
+
                 = f[i] + ∂f/∂x[i-1/2] * 0.5 * ( x[i-1/2] - x[i+1/2] )
+
                 = f[i] - 0.5 * ∂f/∂x[i-1/2] * Δx[i]
+
 And similarly for the right hand side of the zone:
+
     f[i+1/2]    = f[i] + ∂f/∂x[i+1/2] * ( x[i+1/2] - xₘ[i] )
+
                 = f[i] + ∂f/∂x[i+1/2] * ( x[i+1/2] - 0.5 * ( x[i+1/2] + x[i-1/2] ) )
+
                 = f[i] + ∂f/∂x[i-1/2] * 0.5 * ( x[i+1/2] - x[i-1/2] )
+
                 = f[i] + 0.5 * ∂f/∂x[i-1/2] * Δx[i]
-In both cases, ∂f/∂x[i+1/2] (or i-1/2) can be evaluated using ∂∂x_ZoneEdgeToZoneEdge()
-The derivative is then
+
+In both cases, `∂f/∂x[i+1/2]` (or `i-1/2`) can be evaluated using `∂∂x_ZoneEdgeToZoneEdge()`.
+The derivative is then:
+
     ∂f/∂x[i]    = ( f[i+1/2] - f[i-1/2] ) / ( x[i+1/2] - x[i-1/2] )
 
-Important Note: This function is not currently used by this package and is mainly included for completeness. As such, it is not well-tested and should be used with caution.
+!!! warning
+    This function is not currently used by this package and is mainly included for completeness. As such, it is not well-tested and should be used with caution.
 """
 function ∂∂x_ZoneCenterToZoneCenter( f₋::T, f₀::T, f₊::T, Δx₋::T, Δx₀::T, Δx₊::T ) where { T <: AbstractFloat }
     ∂f∂x₋ = ∂f∂x_ZoneEdge( f₋, f₀, Δx₋, Δx₀ )
@@ -79,7 +102,9 @@ A scalar of type `T` representing the value of ∂f/∂x evaluated at the center
 
 # Notes
 This is computed using a simple forward difference with the values at the left and right edges of the zone.
+
     ∂f/∂x[i]    = ( f[i+1/2] - f[i-1/2] ) / ( x[i+1/2] - x[i-1/2] )
+
                 = ( f[i+1/2] - f[i-1/2] ) / Δx[i]
 """
 function ∂∂x_ZoneEdgeToZoneCenter( f₋::T, f₊::T, Δx::T ) where { T <: AbstractFloat }
@@ -101,23 +126,38 @@ A scalar of type `T` representing the value of ∂f/∂x
 # Notes
 This function uses the values of the edge-centered variables to the (-) left and (+) right of the (0) central zone edge.  These left and right values are used to interpolate the edge centered values to the center of the zone to the (-,0) left or (0,+) right of the central zone edge.
 These interpolation steps are performed according to:
+
     f[i+1]  = f[i+1/2] + ∂f/∂x[i+1] * ( xₘ[i+1] - x[i+1/2] )
+
             = f[i+1/2] + ∂f/∂x[i+1] * ( 0.5 * ( x[i+3/2] + x[i+1/2] ) - x[i+1/2] )
+
             = f[i+1/2] + ∂f/∂x[i+1] * 0.5 * ( x[i+3/2] - x[i+1/2] )
+
             = f[i+1/2] + 0.5 * ∂f/∂x[i+1] * Δx[i+1]
+
 Similarly for the evaluation to the left:
+
     f[i]    = f[i+1/2] + ∂f/∂x[i] * ( xₘ[i] - x[i+1/2] )
+
             = f[i+1/2] + ∂f/∂x[i] * ( 0.5 * ( x[i+1/2] + x[i-1/2] ) - x[i+1/2] )
+
             = f[i+1/2] + ∂f/∂x[i] * 0.5 * ( x[i-1/2] - x[i+1/2] )
+
             = f[i+1/2] - 0.5 * ∂f/∂x[i] * Δx[i]
+
 The calculation of ∂f/∂x is performed using the ∂∂x_ZoneEdgeToZoneCenter() function.
 The derivative evaluated at the central zone edge is therefore
+
     ∂f/dx[i+1/2]    = ( f[i+1] - f[i] ) / ( xₘ[i+1] - xₘ[i] )
+
                     = ( f[i+1] - f[i] ) / ( 0.5 * ( x[i+3/2] + x[i+1/2] ) - 0.5 * ( x[i+1/2] + x[i-1/2] ) )
+
                     = 2.0 * ( f[i+1] - f[i] ) / ( ( x[i+3/2] - x[i+1/2] ) + ( x[i+1/2] - x[i-1/2] ) )
+
                     = 2.0 * ( f[i+1] - f[i] ) / ( Δx[i+1] + Δx[i] )
 
-Important Note: This function is not currently used by this package and is mainly included for completeness. As such, it is not well-tested and should be used with caution.
+!!! warning
+    This function is not currently used by this package and is mainly included for completeness. As such, it is not well-tested and should be used with caution.
 """
 function ∂∂x_ZoneEdgeToZoneEdge( f₋::T, f₀::T, f₊::T, Δx₋::T, Δx₊::T ) where { T <: AbstractFloat }
     ∂f∂x₋ = ∂∂x_ZoneEdgeToZoneCenter( f₋, f₀, Δx₋ ) # Derivative evaluated at the center of the zone to the left of the boundary
