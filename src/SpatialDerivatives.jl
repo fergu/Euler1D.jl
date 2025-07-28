@@ -7,8 +7,8 @@ Compute the derivative of a zone-centered variable, f, evaluated at the zone edg
 A scalar of type `T` representing the value of ∂f/∂x evaluated at the boundary between two adjacent zones.
 
 # Arguments
-- f : A zone-centered variable located in the zone to the (-) left or (+) right of the zone boundary at which the derivative is evaluated.
-- Δx: The length of the zone to the (-) left or (+) right of the zone boundary at which the derivative is evaluated.
+- `f`: A zone-centered variable located in the zone to the (-) left or (+) right of the zone boundary at which the derivative is evaluated.
+- `Δx`: The length of the zone to the (-) left or (+) right of the zone boundary at which the derivative is evaluated.
 
 # Notes
 The derivative is calculated using a first-order forward difference. Functionally,
@@ -47,8 +47,8 @@ Compute the derivative of a zone-centered variable, f, evaluated at the zone cen
 A scalar of type `T` representing the value of ∂f/∂x evaluated at the center of a zone.
 
 # Arguments
-- f : The value of the zone centered variable to the (-) left or (+) right of the (0) current zone.
-- Δx: The length of the zone to the (-) left or (+) right of the (0) current zone.
+- `f`: The value of the zone centered variable to the (-) left or (+) right of the (0) current zone.
+- `Δx`: The length of the zone to the (-) left or (+) right of the (0) current zone.
 
 # Notes
 This derivative is calculated by first linearly interpolating the zone-centered variables to the left and right zone boundaries of the current zone. These interpolated values are then used to evaluate the derivative at the zone center.
@@ -97,8 +97,8 @@ Evaluate the derivative of an edge-centered variable, f, at the center of the zo
 A scalar of type `T` representing the value of ∂f/∂x evaluated at the center of a zone.
 
 # Arguments
-- f : The value of the edge-centered variable at the (-) left or (+) right edge of the zone.
-- Δx: The length of the zone.
+- `f`: The value of the edge-centered variable at the (-) left or (+) right edge of the zone.
+- `Δx`: The length of the zone.
 
 # Notes
 This is computed using a simple forward difference with the values at the left and right edges of the zone.
@@ -120,8 +120,8 @@ Computes the derivative of an edge-centered variable, f, at the zone edge.
 A scalar of type `T` representing the value of ∂f/∂x
 
 # Arguments
-- f : The edge-centered variable to be evaluated. Subscripts refer to the zone edge to the (-) left or (+) right of the central (0) zone edge at which the derivative will be evaluated.
-- Δx: The size of the zones to the (-) left or (+) right of the central zone edge.
+- `f`: The edge-centered variable to be evaluated. Subscripts refer to the zone edge to the (-) left or (+) right of the central (0) zone edge at which the derivative will be evaluated.
+- `Δx`: The size of the zones to the (-) left or (+) right of the central zone edge.
 
 # Notes
 This function uses the values of the edge-centered variables to the (-) left and (+) right of the (0) central zone edge.  These left and right values are used to interpolate the edge centered values to the center of the zone to the (-,0) left or (0,+) right of the central zone edge.

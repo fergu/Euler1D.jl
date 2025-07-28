@@ -7,8 +7,8 @@ Compute the density of the fluid in a zone.
 A scalar of type `T` representing the density of a zone.
 
 # Arguments
-- mass: The total mass contained within the zone. (Unit: kg)
-- Δx: The size of the zone. (Unit: m)
+- `mass`: The total mass contained within the zone. (Unit: kg)
+- `Δx`: The size of the zone. (Unit: m)
 
 # Notes
 Density is calculated as:
@@ -26,7 +26,7 @@ Update all zone densities.
 `nothing`. Modifies the `simulation` input in-place. See the Side Effects section for further detail.
 
 # Arguments
-- simulation: A `Simulation{T}` representing the simulation state.
+- `simulation`: A `Simulation{T}` representing the simulation state.
 
 # Notes
 Calls `EOS_Density` to compute the density in each zone. See the documentation of that function for further details.
@@ -50,11 +50,11 @@ Compute the pressure of a zone using an ideal gas equation of state.
 A scalar of type `T` representing the pressure within the zone.
 
 # Arguments
-- γ   : The ratio of specific heats of the fluid in the zone. (Unit: ⋅)
-- ρ   : The density of the zone. (Unit: kg/m³)
-- mass: The total mass contained within the zone. (Unit: kg)
-- Δx  : The size of the zone. (Unit: m)
-- e   : The internal energy per unit mass of the zone. (Unit: m²/s²)
+- `γ`: The ratio of specific heats of the fluid in the zone. (Unit: ⋅)
+- `ρ`: The density of the zone. (Unit: kg/m³)
+- `mass`: The total mass contained within the zone. (Unit: kg)
+- `Δx`: The size of the zone. (Unit: m)
+- `e`: The internal energy per unit mass of the zone. (Unit: m²/s²)
 
 # Notes
 The pressure is calculated as:
@@ -73,7 +73,7 @@ Update all zone pressures using an ideal gas equation of state.
 `nothing`. Modifies the `simulation` input in-place. See the Side Effects section for further detail.
 
 # Arguments
-- simulation: A `Simulation{T}` representing the simulation state.
+- `simulation`: A `Simulation{T}` representing the simulation state.
 
 # Notes
 Calls `EOS_Pressure()` to compute the pressure in each zone. See the documentation of that function for further details.
@@ -97,12 +97,12 @@ Compute the speed of sound in a zone using an ideal gas equation of state.
 A scalar of type `T` representing the speed of sound in the zone.
 
 # Arguments
-- γ: The ratio of specific heats in the zone. (Unit: ⋅)
-- e: The internal energy per unit mass in the zone. (Unit: m²/s²)
-- P: The pressure in the zone. (Unit: kg/(m⋅s²))
-- ρ: The density of the fluid in the zone. (Unit: kg/m³)
-- mass: The mass contained in the zone. (Unit: kg)
-- Δx: The length of the zone. (Unit: m)
+- `γ`: The ratio of specific heats in the zone. (Unit: ⋅)
+- `e`: The internal energy per unit mass in the zone. (Unit: m²/s²)
+- `P`: The pressure in the zone. (Unit: kg/(m⋅s²))
+- `ρ`: The density of the fluid in the zone. (Unit: kg/m³)
+- `mass`: The mass contained in the zone. (Unit: kg)
+- `Δx`: The length of the zone. (Unit: m)
 
 # Notes
 The speed of sound is calculated as:
@@ -121,7 +121,7 @@ Update all speed of sound values using an ideal gas equation of state.
 `nothing`. Modifies the `simulation` input in-place. See the Side Effects section for further detail.
 
 # Arguments
-- simulation: A `Simulation{T}` representing the simulation state.
+- `simulation`: A `Simulation{T}` representing the simulation state.
 
 # Notes
 Calls `EOS_SpeedOfSound()` to calculate the speed of sound in each zone. See the documentation of that function for further details.
@@ -144,7 +144,7 @@ Update all densities, pressures, and speeds of sound using the equation of state
 `nothing`. Modifies the `simulation` input in-place. See the Side Effects section for further detail.
 
 # Arguments
-- simulation: A `Simulation{T}` representing the simulation state.
+- `simulation`: A `Simulation{T}` representing the simulation state.
 
 # Notes
 Calls `EOS_Density!()`, `EOS_Pressure!()`, and `EOS_SpeedOfSound!()` to compute the density, pressure, and speed of sound in each zone respectively. See the documentation of those functions for further details.

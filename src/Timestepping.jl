@@ -7,10 +7,10 @@ Advance the simulation with initial state `state` to a time specified by `stopti
 A `Simulation{T}` representing the state at the end of the final cycle.
 
 # Arguments
-- input: A `Simulation{T}` representing the simulation state at the start of the first cycle.
-- stoptime: The time to advance to. (Unit: s)
-- Δt: The timestep size. (Unit: s)
-- exact: If true, try to stop as close as possible to `stoptime` by adjusting the final timestep size (Default: `false`)
+- `input`: A `Simulation{T}` representing the simulation state at the start of the first cycle.
+- `stoptime`: The time to advance to. (Unit: s)
+- `Δt`: The timestep size. (Unit: s)
+- `exact`: If true, try to stop as close as possible to `stoptime` by adjusting the final timestep size (Default: `false`)
 
 # Notes
 - The current simulation time is determined by the `Simulation` field `state.time`. If `state.time > stoptime`, no steps will be taken.
@@ -45,9 +45,9 @@ Advance the simulation with initial state `state` to a time specified by `stopti
 A `Simulation{T}` representing the state at the end of the final cycle
 
 # Arguments
-- input: A `Simulation{T}` representing the simulation state at the start of the first cycle.
-- stoptime: The time to advance to. (Unit: s)
-- exact: If true, try to stop as close as possible to `stoptime` by adjusting the final timestep size (Default: false)
+- `input`: A `Simulation{T}` representing the simulation state at the start of the first cycle.
+- `stoptime`: The time to advance to. (Unit: s)
+- `exact`: If true, try to stop as close as possible to `stoptime` by adjusting the final timestep size (Default: false)
 
 # Notes
 - The current simulation time is determined by the `Simulation` field `state.time`. If `state.time > stoptime`, no steps will be taken.
@@ -85,9 +85,9 @@ Advance the simulation by one cycle with a timestep of Δt.
 `nothing`. Modifies `output` in-place.
 
 # Arguments
-- output: A `Simulation{T}` that will represent the output state. This will be modified by the function to represent the simulation state after advancing one cycle.
-- input: A `Simulation{T}` that represents the simulation state at the start of the cycle.
-- Δt: The size of the time step. (Unit: s)
+- `output`: A `Simulation{T}` that will represent the output state. This will be modified by the function to represent the simulation state after advancing one cycle.
+- `input`: A `Simulation{T}` that represents the simulation state at the start of the cycle.
+- `Δt`: The size of the time step. (Unit: s)
 
 # Side Effects
 - All fields of `output` are modified in-place.
@@ -105,8 +105,8 @@ Advance the simulation by one cycle.
 `nothing`. Modifies `output` in-place.
 
 # Arguments
-- output: A `Simulation{T}` that will represent the output state. This will be modified by the function to represent the simulation state after advancing one cycle.
-- input: A `Simulation{T}` representing the simulation state at the start of the cycle
+- `output`: A `Simulation{T}` that will represent the output state. This will be modified by the function to represent the simulation state after advancing one cycle.
+- `input`: A `Simulation{T}` representing the simulation state at the start of the cycle
 
 # Notes
 - The timestep size, Δt, is determined based on the minimum time for an acoustic wave to traverse a zone. See `CalculateTimestepSize()` for further details.
@@ -128,8 +128,8 @@ Advance the simulation by one cycle with a timestep of Δt.
 A `Simulation{T}` representing the state at the end of the cycle
 
 # Arguments
-- input: A `Simulation{T}` representing the simulation state at the start of the cycle.
-- Δt: The size of the time step. (Unit: s)
+- `input`: A `Simulation{T}` representing the simulation state at the start of the cycle.
+- `Δt`: The size of the time step. (Unit: s)
 
 # Notes
 - This function allocates a `deepcopy()` of the input state and returns the copy.
@@ -149,7 +149,7 @@ Advance the simulation by one cycle.
 - A `Simulation{T}` representing the state at the end of the cycle
 
 # Arguments
-- input: A `Simulation{T}` representing the simulation state at the start of the cycle
+- `input`: A `Simulation{T}` representing the simulation state at the start of the cycle
 
 # Notes
 - This function allocates a `deepcopy()` of the input state and returns the copy.
@@ -170,9 +170,9 @@ Advance the simulation by `ncycles` cycles with a fixed timestep.
 - A `Simulation{T}` representing the state at the end of the final cycle
 
 # Arguments
-- input: A `Simulation{T}` representing the simulation state at the start of the first cycle.
-- ncycles: The number of cycles to advance.
-- Δt: The size of the time step. (Unit: s)
+- `input`: A `Simulation{T}` representing the simulation state at the start of the first cycle.
+- `ncycles`: The number of cycles to advance.
+- `Δt`: The size of the time step. (Unit: s)
 
 # Notes
 - This function allocates two `deepcopy()`s of the input state and returns the copy corresponding to the final state.
@@ -203,8 +203,8 @@ Advance the simulation by `ncycles` cycles with a variable timestep.
 - A `Simulation{T}` representing the state at the end of the final cycle
 
 # Arguments
-- input: A `Simulation{T}` representing the simulation state at the start of the first cycle.
-- ncycles: The number of cycles to advance. (Unit: ⋅)
+- `input`: A `Simulation{T}` representing the simulation state at the start of the first cycle.
+- `ncycles`: The number of cycles to advance. (Unit: ⋅)
 
 # Notes
 - This function allocates two `deepcopy()`s of the input state and returns the copy corresponding to the final state.
@@ -238,7 +238,7 @@ Compute an automatic timestep size for the next simulation cycle based on the cu
 - A scalar of type `T` representing the timestep size for the next cycle based on the current simulation state.
 
 # Arguments
-- state: A `Simulation{T}` representing the problem state.
+- `state`: A `Simulation{T}` representing the problem state.
 
 # Notes
 - For each zone, the local speed of sound is computed according to `c = √( γ P / ρ )`, where γ, P, and ρ are the ratio of specific heats, the pressure, and the density of the gas in that zone.

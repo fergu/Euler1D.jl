@@ -17,9 +17,9 @@ Perform one timestep (cycle) of the solution process.
 `nothing`. Modifies the `output` argument in-place.
 
 # Parameters
-- output: A `Simulation{T}` where the state at the next timestep will be stored. Modified in-place by this function.
-- input: A `Simulation{T}` representing the state at the beginning of the timestep.
-- Δt: The size of the timestep. That is, the amount of time the solution is advanced in one cycle.
+- `output`: A `Simulation{T}` where the state at the next timestep will be stored. Modified in-place by this function.
+- `input`: A `Simulation{T}` representing the state at the beginning of the timestep.
+- `Δt`: The size of the timestep. That is, the amount of time the solution is advanced in one cycle.
 
 # Notes
 - This function is generally not intended to be called directly. Instead, use the various time-stepping functions defined in `Timestepping.jl` such as `AdvanceOneCycle()`, `AdvanceNCycles()`, or `AdvanceToTime()`.

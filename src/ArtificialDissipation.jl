@@ -7,11 +7,11 @@ Compute an artificial viscosity at a zone interface.
 A value of type `T` representing the value of the artificial viscosity.
 
 # Arguments
-- Cᵥ: An O(1) coefficient to control the strength of the artificial viscosity. (Unit: ⋅)
-- c : The speed of sound in the zone. (Unit: m/s)
-- ρ : The density of the zone. (Unit: kg/m³)
-- Δx: The length of the zone. (Unit: m)
-- u : The velocity of the zone boundaries, with superscripts - and + referring to the left and right boundaries, respectively. (Unit: m/s)
+- `Cᵥ`: An O(1) coefficient to control the strength of the artificial viscosity. (Unit: ⋅)
+- `c`: The speed of sound in the zone. (Unit: m/s)
+- `ρ`: The density of the zone. (Unit: kg/m³)
+- `Δx`: The length of the zone. (Unit: m)
+- `u`: The velocity of the zone boundaries, with superscripts - and + referring to the left and right boundaries, respectively. (Unit: m/s)
 
 # Notes
 - This artificial viscosity is based on the method described by Wilkins (1980), which in turn relies upon the methods of Von Neumann and Richtmyer (1950) and Landschoff (1955). This functions by adding the artificial viscosity computed by this function to the pressure field during the `Momentum!()` and `Energy!()` updates.
@@ -37,7 +37,7 @@ Compute the value of artificial viscosity at every zone interface.
 `nothing`. The input `state` is modified by this function.
 
 # Arguments
-- state: A `Simulation{T}` representing the current problem state that will be used to compute the artificial viscosity term.
+- `state`: A `Simulation{T}` representing the current problem state that will be used to compute the artificial viscosity term.
 
 # Notes
 - This function iterates through every zone interface and calls `artificial_viscosity()` to update the `viscosity` state variable. See the documentation for `artificial_viscosity()` for details on how artificial viscosity is calculated.
@@ -60,11 +60,11 @@ Compute an artificial flux of internal energy across a zone interface.
 A value of type `T` representing the artifical flux of internal energy across a zone boundary.
 
 # Arguments
-- Cₖ: An O(1) coefficient to control the strength of the artificial conductivity. (Unit: ⋅)
-- u : The velocity of the zone interface. (Unit: m/s)
-- c : The speed of sound, where superscript - and + refer to the zones to the left and right of the zone interface, respectively. (Unit: m/s)
-- e : The internal energy per unit mass. Superscript - and + refer to the zones to the left and right of the zone interface, respectively. (Unit: m²/s²)
-- Δx: Length of the zone. Superscript - and + refer to the zones to the left and right of the zone interface, respectively. (Unit: m)
+- `Cₖ`: An O(1) coefficient to control the strength of the artificial conductivity. (Unit: ⋅)
+- `u`: The velocity of the zone interface. (Unit: m/s)
+- `c`: The speed of sound, where superscript - and + refer to the zones to the left and right of the zone interface, respectively. (Unit: m/s)
+- `e`: The internal energy per unit mass. Superscript - and + refer to the zones to the left and right of the zone interface, respectively. (Unit: m²/s²)
+- `Δx`: Length of the zone. Superscript - and + refer to the zones to the left and right of the zone interface, respectively. (Unit: m)
 
 # Notes
 The artificial conductivity is modeled as a Fickian diffusivity. That is, the flux of energy across a zone boundary, fₑ, is described by
@@ -95,7 +95,7 @@ Compute the artificial flux of energy across each zone interface in the simulati
 `nothing`. Modifies the `state` argument in-place. 
 
 # Arguments
-- state: A `Simulation{T}` object representing the problem state.
+- `state`: A `Simulation{T}` object representing the problem state.
 
 # Notes
 This function calls `artificial_conductivity()` at each zone interface in the problem. See the documentation of that function for further detail on the calculation that is performed.
