@@ -190,6 +190,6 @@ Just because something is included here does not mean it is being actively worke
   
 ## References
 
-* [1] von Neumann, J. and Richtmyer, R. D. "A method for the numerical calculation of hydrodynamic shocks". J. Appl. Phys. (21) pp 232-237 (1950)
-* [2] Landshoff, R., "A Numerical Method for Treating Fluid Flow in the Presence of Shocks", Los Alamos Scientific Laboratory Report LA-1930 (1955)
-* [3] Wilkins, M. L., "Use of Artificial Viscosity in Multidimensional Fluid Dynamic Calculations". J. Comp. Phys. (36) pp 281-303 (1980)
+* [1] von Neumann, J. and Richtmyer, R. D. "A method for the numerical calculation of hydrodynamic shocks". J. Appl. Phys. (21) pp 232-237 (1950) DOI: [10.1063/1.1699639](https://doi.org/10.1063/1.1699639)
+* [2] Landshoff, R., "A Numerical Method for Treating Fluid Flow in the Presence of Shocks", Los Alamos Scientific Laboratory Report LA-1930 (1955) [Link](https://apps.dtic.mil/sti/tr/pdf/ADA382679.pdf)
+* [3] Wilkins, M. L., "Use of Artificial Viscosity in Multidimensional Fluid Dynamic Calculations". J. Comp. Phys. (36) pp 281-303 (1980) DOI: [10.1016/0021-9991(80)90161-8](https://doi.org/10.1016/0021-9991(80)90161-8)
