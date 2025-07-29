@@ -5,7 +5,7 @@ A structure containing all the internal variables and arrays used in the simulat
 
 # Parameters
 - `nzones::Int`: The number of zones in the simulation. (Unit: ⋅)
-- `nedges::Int`: The number of zone edges in the simulation, equal to nzones + 1. (Unit: ⋅)
+- `nedges::Int`: The number of zone edges in the simulation, equal to `nzones + 1`. (Unit: ⋅)
 - `CFL::Float64`: The CFL number to be used when calculating timesteps. (Unit: ⋅)
 - `t₀::Float64`: The initial time of the simulation. (Unit: s)
 - `t₁::Float64`: The final time of the simulation. (Unit: s)
