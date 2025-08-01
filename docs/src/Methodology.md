@@ -111,18 +111,18 @@ Von Neumann and Richtmyer [1] initially introduced an artificial viscosity term 
 ```math
 q_{vnr} = - C_v \rho (c\Delta x)^2 \frac{\partial u}{\partial x} \cdot \left| \frac{\partial u}{\partial x} \right|
 ```
-where ``q_{vnr}`` is the artificial von Neumann-Richtmyer viscosity, ``C_v`` is an ``O(1)`` dimensionless coefficient (and not to be confused with ``\hat{c}_v``, the dimensionless heat capacity at constant volume), and ``c`` is the local speed of sound. Later, Landscoff [2] introduced a different definition that was instead linear in the velocity gradient:
+where ``q_{vnr}`` is the artificial von Neumann-Richtmyer viscosity, ``C_v`` is an ``O(1)`` dimensionless coefficient (and not to be confused with ``\hat{c}_v``, the dimensionless heat capacity at constant volume), and ``c`` is the local speed of sound. Later, Landshoff [2] introduced a different definition that was instead linear in the velocity gradient:
 ```math
 q_l = C_v \rho \Delta x c \left| \frac{\partial u}{\partial x} \right|
 ```
-where `q_l` is the Landshoff artificial viscosity. Wilkins [3] combined these two definitions into a single expression,
+where ``q_l`` is the Landshoff artificial viscosity. Wilkins [3] combined these two definitions into a single expression,
 ```math
 \boxed{ q_v = c_{vnr} + q_l = - C_v \rho (c\Delta x)^2 \frac{\partial u}{\partial x} \cdot \left| \frac{\partial u}{\partial x} \right| + C_v \rho \Delta x c \left| \frac{\partial u}{\partial x} \right| }
 ```
 This is the expression used for artificial viscosity in this package and is computed by the function [`artificial_viscosity()`](@ref). Numerically, this artificial viscosity is zone-centered to be aligned with the pressure field. Derivatives of velocity are computed identically to the method used in the computation of pressure, ``\left( \partial u/\partial x \right)_i = ( u_{i+1/2} - u_{i-1/2} ) / \Delta x_i``.
 
 !!! info
-    The same tuning coefficient, ``C_v``, is used for both the von Neumann-Richtmyer and Landscoff components of artificial viscosity.
+    The same tuning coefficient, ``C_v``, is used for both the von Neumann-Richtmyer and Landshoff components of artificial viscosity.
 
 ### Artificial Conductivity
 
