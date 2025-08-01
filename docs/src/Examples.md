@@ -127,6 +127,7 @@ plot( end_state.zone_center, end_state.density );
 savefig( "sod_density.svg" ) # hide
 ```
 ![](sod_density.svg)
+
 Similar plots can be made for other zone-centered quantities such as internal energy or pressure. 
 
 !!! tip
@@ -196,7 +197,7 @@ function run_simulation( init_state::Simulation{T}, end_time::T ) where { T <: A
     return new_state
 end;
 ```
-There's a lot going on in this function. Most of it is straightforward and explained in the comments. However, there's a few things worth highlighting. In particular, X-T diagrams can be made using quantities such as pressure or density, but [Riemann Invariants](https://en.wikipedia.org/wiki/Riemann_invariant) are a particularly powerful way to visualize the movement of waves within the domain. The Euler equations have positive and negative Riemann invariants, corresponding to rightwards- and leftwards-moving waves, respectively. These are computed using the following lines:
+There's a lot going on in this function, but fortunately most of it is straightforward and is well explained by the comments. However, there's a few things worth highlighting. In particular, X-T diagrams can be made using quantities such as pressure or density, but [Riemann Invariants](https://en.wikipedia.org/wiki/Riemann_invariant) are a particularly powerful way to visualize the movement of waves within the domain. The Euler equations have positive and negative Riemann invariants, corresponding to rightwards- and leftwards-moving waves, respectively. These are computed using the following lines:
 ```julia
 # Now compute the Riemann invariants. 
 # For this we'll need to interpolate the velocities to zone centers, which we'll do with a simple average
