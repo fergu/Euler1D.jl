@@ -7,5 +7,11 @@ makedocs(;
     format=Documenter.HTML(
         prettyurls=false,
     ),
+    pages=[
+        "index.md",
+        "Examples.md",
+        "Methodology.md",
+        "FunctionReference.md"
+    ],
     checkdocs=:exports,
 )
