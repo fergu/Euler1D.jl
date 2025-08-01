@@ -4,9 +4,6 @@ using Euler1D
 makedocs(;
     sitename="Euler1D",
     modules=[Euler1D],
-    format=Documenter.HTML(
-        prettyurls=false,
-    ),
     pages=[
         "index.md",
         "Examples.md",
@@ -14,4 +11,8 @@ makedocs(;
         "FunctionReference.md"
     ],
     checkdocs=:exports,
+)
+
+deploydocs(
+    repo = "github.com/fergu/Euler1D.jl.git",
 )
