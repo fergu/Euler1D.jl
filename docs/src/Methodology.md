@@ -117,7 +117,7 @@ q_l = C_v \rho \Delta x c \left| \frac{\partial u}{\partial x} \right|
 ```
 where ``q_l`` is the Landshoff artificial viscosity. Wilkins [3] combined these two definitions into a single expression,
 ```math
-\boxed{ q_v = c_{vnr} + q_l = - C_v \rho (c\Delta x)^2 \frac{\partial u}{\partial x} \cdot \left| \frac{\partial u}{\partial x} \right| + C_v \rho \Delta x c \left| \frac{\partial u}{\partial x} \right| }
+\boxed{ q_v = c_{vnr} + q_l = - C_v \rho (c\Delta x)^2 \frac{\partial u}{\partial x} \cdot \left| \frac{\partial u}{\partial x} \right| + C_v \rho c \Delta x \left| \frac{\partial u}{\partial x} \right| }
 ```
 This is the expression used for artificial viscosity in this package and is computed by the function [`artificial_viscosity()`](@ref). Numerically, this artificial viscosity is zone-centered to be aligned with the pressure field. Derivatives of velocity are computed identically to the method used in the computation of pressure, ``\left( \partial u/\partial x \right)_i = ( u_{i+1/2} - u_{i-1/2} ) / \Delta x_i``.
 
