@@ -46,7 +46,7 @@ Compute the value of artificial viscosity within every zone.
 """
 function artificial_viscosity!( state::Simulation{T} ) where { T <: AbstractFloat }
     for i in 1:state.nzones
-        state.viscosity[i] = artificial_viscosity( state.Cᵥ, state.speedofsound[i], state.density[i], state.zone_length[i], state.velocity[i], state.velocity[i+1] )
+        state.viscosity[i] = artificial_viscosity( state.viscosity_coefficient, state.speedofsound[i], state.density[i], state.zone_length[i], state.velocity[i], state.velocity[i+1] )
     end
 end
 
@@ -109,7 +109,7 @@ This function calls [`artificial_conductivity()`](@ref) at each zone interface i
 """
 function artificial_conductivity!( state::Simulation{T} ) where { T <: AbstractFloat }
     for i in 1:state.nzones-1
-        state.energy_flux[i+1] = artificial_conductivity( state.Cₖ, state.velocity[i+1], state.speedofsound[i], state.intenergy[i], state.zone_length[i], state.speedofsound[i+1], state.intenergy[i+1], state.zone_length[i+1] )
+        state.energy_flux[i+1] = artificial_conductivity( state.conductivity_coefficient, state.velocity[i+1], state.speedofsound[i], state.intenergy[i], state.zone_length[i], state.speedofsound[i+1], state.intenergy[i+1], state.zone_length[i+1] )
     end
 end
 

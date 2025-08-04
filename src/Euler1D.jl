@@ -33,8 +33,8 @@ function cycle!( output::Simulation{T}, input::Simulation{T}, Δt::T ) where { T
     Energy!( output, input )
     # We now need to integrate these right hand sides to get the new values of velocity and internal energy
     # Currently this is just a basic forward Euler integration
-    output.velocity .= input.velocity .+ Δt .* output.∂u∂t
-    output.intenergy .= input.intenergy .+ Δt .* output.∂e∂t
+    output.velocity .= input.velocity .+ Δt .* output.momentum_rhs
+    output.intenergy .= input.intenergy .+ Δt .* output.energy_rhs
     # Next we update the position of each zone edge
     for i in range( 1, output.nedges )
         output.zone_edge[i] = input.zone_edge[i] + Δt * 0.5 * ( input.velocity[i] + output.velocity[i] )
@@ -50,12 +50,12 @@ function cycle!( output::Simulation{T}, input::Simulation{T}, Δt::T ) where { T
     # Now update derived quantities using the equation of state
     EquationOfState!( output )
     # Compute the new artificial viscosity, but only if the coefficient is nonzero
-    !iszero( output.Cᵥ ) && artificial_viscosity!( output )
+    !iszero( output.viscosity_coefficient ) && artificial_viscosity!( output )
     # as well as the new artificial conductivity, also only if the coefficient is nonzero
-    !iszero( output.Cₖ ) && artificial_conductivity!( output )
+    !iszero( output.conductivity_coefficient ) && artificial_conductivity!( output )
     # Last, update the current simulation time
     output.time.x = input.time.x + Δt
-    output.Δt.x = Δt
+    output.dt.x = Δt
     output.cycles.x = input.cycles.x + 1
     if ( output.cycles.x > output.max_cycles )
         error("Current cycle ($(output.cycles.x)) exceeds maximum number of cycles ($(output.max_cycles)). Exiting.")

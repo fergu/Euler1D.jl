@@ -53,7 +53,7 @@ function InitializeSimulation( parameters::Dict{String, Any} )
     xₘ = 0.5 .* ( x[2:end] .+ x[1:end-1] ) # Position of zone centers. This will be passed to the initialization functions for zone-centered quantities
 
     # Get the starting and ending times
-    t₀ = pop!( internal_parameters, "start_time" )
+    start_time = pop!( internal_parameters, "start_time" )
 
     # Get the initial condition functions
     density = pop!( internal_parameters, "init_density_function" )
@@ -77,10 +77,10 @@ function InitializeSimulation( parameters::Dict{String, Any} )
                             number_of_zones,                        # Number of zones
                             number_of_zones + 1,                    # Number of edges
                             CFL,                                    # CFL Number
-                            t₀,                                     # Starting time
+                            start_time,                             # Starting time
                             artificial_viscosity,                   # Coefficient for artificial viscosity
                             artificial_conductivity,                # Coefficient for artificial conductivity
-                            Ref( t₀ ),                              # Current time, initialized to the initial time
+                            Ref( start_time ),                      # Current time, initialized to the initial time
                             Ref( min_Δt ),                          # Size of the last timestep, initialized to min_Δt
                             Ref( zero(UInt) ),                      # Number of cycles taken so far, initialized to 0
                             min_Δt,                                 # Minimum timestep size

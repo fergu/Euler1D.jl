@@ -7,16 +7,17 @@ A structure containing all the internal variables and arrays used in the simulat
 - `nzones::Int`: The number of zones in the simulation. (Unit: ⋅)
 - `nedges::Int`: The number of zone edges in the simulation, equal to `nzones + 1`. (Unit: ⋅)
 - `CFL::Float64`: The CFL number to be used when calculating timesteps. (Unit: ⋅)
-- `t₀::Float64`: The initial time of the simulation. (Unit: s)
-- `Cᵥ::Float64`: The coefficient used to scale artificial viscosity. (Unit: ⋅)
-- `Cₖ::Float64`: The coefficient used to scale artificial conductivity. (Unit: ⋅)
+- `start_time::Float64`: The initial time of the simulation. (Unit: s)
+- `viscosity_coefficient::Float64`: The coefficient used to scale artificial viscosity. (Unit: ⋅)
+- `conductivity_coefficient::Float64`: The coefficient used to scale artificial conductivity. (Unit: ⋅)
 - `time::Base.RefValue{T}`: The current time of the simulation. (Unit: s)
-- `Δt::Base.RefValue{T}`: The size of the timestep taken in the last cycle. (Unit: s)
+- `dt::Base.RefValue{T}`: The size of the timestep taken in the last cycle. (Unit: s)
 - `cycles::Base.RefValue{UInt}`: The number of cycles performed so far. (Unit: ⋅)
-- `min_Δt::Float64`: The minimum allowable timestep size. Simulation will halt if `Δt` falls below this value. (Unit: s)
+- `min_dt::Float64`: The minimum allowable timestep size. Simulation will halt if `Δt` falls below this value. (Unit: s)
 - `max_cycles::UInt`: The maximum number of cycles to perform. Simulation will halt if `cycles` exceeds this value. (Unit: ⋅)
-- `x::Vector{T}`: A vector of locations of zone edges. Increases monotonically. (Unit: m)
-- `Δx::Vector{T}`: A vector of the size of each zone. (Unit: m)
+- `zone_edge::Vector{T}`: A vector of locations of zone edges. Increases monotonically. (Unit: m)
+- `zone_center::Vector{T}`: A vector of locations of zone centers, defined as the midpoint between two zone edges. Increases monotonically. (Unit: m)
+- `zone_length::Vector{T}`: A vector of the length of each zone. (Unit: m)
 - `gamma::Vector{T}`: A vector of the ratio of specific heats inside each zone. (Unit: ⋅)
 - `mass::Vector{T}`: A vector of the mass contained within each zone. Assumed constant. (Unit: kg)
 - `density::Vector{T}`: A vector of the density of the fluid within each zone. Computed using the equation of state as mass/Δx. (Unit: kg/m³)
@@ -26,23 +27,23 @@ A structure containing all the internal variables and arrays used in the simulat
 - `speedofsound::Vector{T}`: A vector of the speed of sound within each zone. Computed from the equation of state. (Unit: m/s)
 - `viscosity::Vector{T}`: A vector of the artificial viscosity within each zone, added to the pressure field. See ArtificialDissipation.jl for more information. (Unit: kg/(m⋅s²))
 - `energy_flux::Vector{T}`: A vector of fluxes of internal energy per unit mass across each zone boundary. Added to the energy equation as a diffusion term. See ArtificialDissipation.jl for more information. (Unit: m³/s³)
-- `∂u∂t::Vector{T}`: A vector of the right hand side of the momentum equation at each zone edge. (Unit: m/s²)
-- `∂e∂t::Vector{T}`: A vector of the right hand side of the energy equation within each zone. (Unit: m²/s³)
+- `momentum_rhs::Vector{T}`: A vector of the right hand side of the momentum equation at each zone edge. (Unit: m/s²)
+- `energy_rhs::Vector{T}`: A vector of the right hand side of the energy equation within each zone. (Unit: m²/s³)
 """
 struct Simulation{T}
     # Simulation configuration information (Constant)
     nzones::UInt                        # Number of zones in the simulation [⋅]
     nedges::UInt                        # Number of zone edges in the simulation. Equal to nzones + 1
     CFL::Float64                        # CFL number of the simulation [⋅]
-    t₀::Float64                         # Initial time of the simulation [s]
+    start_time::Float64                 # Initial time of the simulation [s]
     # Artificial viscosity and conductivity coefficients
-    Cᵥ::Float64                         # Coefficient for artificial viscosity
-    Cₖ::Float64                         # Coefficient for artificial conductivity
+    viscosity_coefficient::Float64      # Coefficient for artificial viscosity
+    conductivity_coefficient::Float64   # Coefficient for artificial conductivity
     # Simulation state information
     time::Base.RefValue{T}              # Current time [s]
-    Δt::Base.RefValue{T}                # The timestep size of the last cycle
+    dt::Base.RefValue{T}                # The timestep size of the last cycle
     cycles::Base.RefValue{UInt}         # The number of cycles performed so far
-    min_Δt::T                           # The minimum allowable Δt. Simulation will halt if Δt goes below this value
+    min_dt::T                           # The minimum allowable Δt. Simulation will halt if Δt goes below this value
     max_cycles::UInt                    # The maximum allowable number of cycles. Simulation will halt if cycles goes above this value
     # Zone Positions
     zone_edge::Vector{T}                # Position of the zone edges [m]
@@ -60,15 +61,15 @@ struct Simulation{T}
     viscosity::Vector{T}                # Artificial viscosity to be applied to a given zone
     energy_flux::Vector{T}              # Energy flux across a given zone boundary [edge centered]
     # RHS variables. These are integrated to calculate the state variables, above
-    ∂u∂t::Vector{T}                     # RHS of the momentum equation, ∂u/∂t 
-    ∂e∂t::Vector{T}                     # RHS of the energy equation, ∂e/∂t
+    momentum_rhs::Vector{T}             # RHS of the momentum equation, ∂u/∂t 
+    energy_rhs::Vector{T}               # RHS of the energy equation, ∂e/∂t
 end
 
 function Base.show( io::IO, obj::Simulation{T} ) where T
     println("Euler1D simulation")
-    println("\tStart time: ", obj.t₀)
+    println("\tStart time: ", obj.start_time)
     println("\tCurrent time: ", obj.time.x)
-    println("\tLast Δt: ", obj.Δt.x, " (Min: ", obj.min_Δt, ")")
+    println("\tLast Δt: ", obj.dt.x, " (Min: ", obj.min_dt, ")")
     println("\tCycle count: ", obj.cycles.x, " (Max: ", obj.max_cycles, ")")
     println("\tCFL number: ", obj.CFL)
     println("\tNumber of zones: ", obj.nzones)
