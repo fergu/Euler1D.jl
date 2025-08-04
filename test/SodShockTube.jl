@@ -178,14 +178,13 @@ function RunSimulation()
     simulation_parameters = DefaultSimulationParameters() # Get a default set of parameters
     simulation_parameters["start_position"] = 0.0
     simulation_parameters["end_position"] = 1.0
-    simulation_parameters["end_time"] = 0.1 # Set the end time to 0.1 seconds
     simulation_parameters["init_density_function"] = ρ # Set the function used to initialize density as the "ρ" function, above
     simulation_parameters["init_velocity_function"] = u # Set the function used to initialize velocity as the "u" function, above
     simulation_parameters["init_pressure_function"] = P # Set the function used to initialize pressure as the "P" function, above
     simulation_parameters["init_gamma_function"] = γ # Set the function used to initialize the ratio of specific heats as the "γ" function, above
     simulation_parameters["number_of_zones"] = 6000 # Set the number of zones in the problem
     init_state = InitializeSimulation( simulation_parameters ) # Initialize the simulation. This sets up the various arrays and such needed for the simulation and returns them in the `init_state` variable
-    final_state = AdvanceToTime( init_state, init_state.t₁; exact=true ) # Run the simulation to the final time
+    final_state = AdvanceToTime( init_state, 0.1; exact=true ) # Run the simulation to the final time of 0.1 for comparison to Sod solution
     return final_state
 end
 
@@ -211,6 +210,6 @@ function CheckSodSolution( sim::Simulation{T}, exact::Dict{String,Vector{T}} ) w
 end
 
 sim_solution = RunSimulation()
-sod_exact = SodShockTube( 0.2, sim_solution.zone_center, sim_solution.zone_edge, 0.5, 1.4, 1.0, 0.0, 1.0, 0.125, 0.0, 0.1 )
+sod_exact = SodShockTube( 0.1, sim_solution.zone_center, sim_solution.zone_edge, 0.5, 1.4, 1.0, 0.0, 1.0, 0.125, 0.0, 0.1 )
 
 CheckSodSolution( sim_solution, sod_exact )

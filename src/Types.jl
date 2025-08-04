@@ -8,7 +8,6 @@ A structure containing all the internal variables and arrays used in the simulat
 - `nedges::Int`: The number of zone edges in the simulation, equal to `nzones + 1`. (Unit: ⋅)
 - `CFL::Float64`: The CFL number to be used when calculating timesteps. (Unit: ⋅)
 - `t₀::Float64`: The initial time of the simulation. (Unit: s)
-- `t₁::Float64`: The final time of the simulation. (Unit: s)
 - `Cᵥ::Float64`: The coefficient used to scale artificial viscosity. (Unit: ⋅)
 - `Cₖ::Float64`: The coefficient used to scale artificial conductivity. (Unit: ⋅)
 - `time::Base.RefValue{T}`: The current time of the simulation. (Unit: s)
@@ -36,7 +35,6 @@ struct Simulation{T}
     nedges::UInt                        # Number of zone edges in the simulation. Equal to nzones + 1
     CFL::Float64                        # CFL number of the simulation [⋅]
     t₀::Float64                         # Initial time of the simulation [s]
-    t₁::Float64                         # End time of the simulation [s]
     # Artificial viscosity and conductivity coefficients
     Cᵥ::Float64                         # Coefficient for artificial viscosity
     Cₖ::Float64                         # Coefficient for artificial conductivity
@@ -70,7 +68,6 @@ function Base.show( io::IO, obj::Simulation{T} ) where T
     println("Euler1D simulation")
     println("\tStart time: ", obj.t₀)
     println("\tCurrent time: ", obj.time.x)
-    println("\tFinal time: ", obj.t₁)
     println("\tLast Δt: ", obj.Δt.x, " (Min: ", obj.min_Δt, ")")
     println("\tCycle count: ", obj.cycles.x, " (Max: ", obj.max_cycles, ")")
     println("\tCFL number: ", obj.CFL)

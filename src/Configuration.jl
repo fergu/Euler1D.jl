@@ -54,10 +54,6 @@ function InitializeSimulation( parameters::Dict{String, Any} )
 
     # Get the starting and ending times
     t₀ = pop!( internal_parameters, "start_time" )
-    t₁ = pop!( internal_parameters, "end_time" )
-    if ( t₁ ≤ t₀ )
-        error("End time (=$t₁) must be greater than start time (=$t₀)")
-    end
 
     # Get the initial condition functions
     density = pop!( internal_parameters, "init_density_function" )
@@ -82,7 +78,6 @@ function InitializeSimulation( parameters::Dict{String, Any} )
                             number_of_zones + 1,                    # Number of edges
                             CFL,                                    # CFL Number
                             t₀,                                     # Starting time
-                            t₁,                                     # Ending time
                             artificial_viscosity,                   # Coefficient for artificial viscosity
                             artificial_conductivity,                # Coefficient for artificial conductivity
                             Ref( t₀ ),                              # Current time, initialized to the initial time
@@ -182,7 +177,6 @@ A `Dict{String, Any}` with default parameters for a simulation.
 function DefaultSimulationParameters()
     return Dict{String, Any}(
                              "start_time" => 0.0,
-                             "end_time" => 1.0,
                              "start_position" => 0.0,
                              "end_position" => 1.0,
                              "number_of_zones" => 1000,
