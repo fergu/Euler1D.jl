@@ -11,7 +11,7 @@ A value of type `T` representing the value of the artificial viscosity.
 - `c`: The speed of sound in the zone. (Unit: m/s)
 - `ρ`: The density of the zone. (Unit: kg/m³)
 - `Δx`: The length of the zone. (Unit: m)
-- `u`: The velocity of the zone boundaries, with superscripts - and + referring to the left and right boundaries, respectively. (Unit: m/s)
+- `u`: The velocity of the zone boundaries, with superscripts - and + referring to the left and right boundaries of the zone, respectively. (Unit: m/s)
 
 # Notes
 - This artificial viscosity is based on the method described by Wilkins (1980), which in turn relies upon the methods of Von Neumann and Richtmyer (1950) and Landschoff (1955). This functions by adding the artificial viscosity computed by this function to the pressure field during the [`Momentum!()`](@ref) and [`Energy!()`](@ref) updates.
@@ -19,7 +19,7 @@ A value of type `T` representing the value of the artificial viscosity.
 - This function returns zero if `∂u/∂x > 0`, which will be the case for regions where the flow is expanding. This is done to restrict artificial viscosity only to regions of compression.
 """
 function artificial_viscosity( Cᵥ::T, c::T, ρ::T, Δx::T, u₋::T, u₊::T ) where { T <: AbstractFloat }
-    ∂u∂x = ∂∂x_ZoneEdgeToZoneCenter( u₋, u₊, Δx ) # Computing ∂u∂x to save some computational expense below as we use the result twice
+    ∂u∂x = ( u₊ - u₋ ) / Δx
     if ( ∂u∂x < 0.0 ) # Only apply viscosity in regions of compression so we restrict this to shocks
         # This is the method described by Wilkins (1980) which is in turn a combination of the methods of Von Neumann and Richtmyer (1950) and Landschoff (1955)
         return -ρ * ( Cᵥ * Δx ).^2 * ∂u∂x * abs( ∂u∂x ) + 0.5 * Cᵥ * ρ * c * Δx * abs( ∂u∂x )
@@ -79,7 +79,7 @@ where
 By convention, this leads to a positive flux if energy is diffusing in the positive x direction, and negative if it is diffusing in the negative x direction.
 """
 function artificial_conductivity( Cₖ::T, u::T, c₋::T, e₋::T, Δx₋::T, c₊::T, e₊::T, Δx₊::T ) where { T <: AbstractFloat }
-    ∇e = ∂∂x_ZoneCenterToZoneEdge( e₋, e₊, Δx₋, Δx₊ ) # The gradient of internal energy between zones. Positive when the energy flux is rightwards
+    ∇e = 2.0 * ( e₊ - e₋ ) / ( Δx₋ + Δx₊ )
     c̄ = 0.5 * ( c₋ + c₊ ) # The average speed of sound between the two zones
     cₘ = max( c̄ + u, c̄, c̄ + u ) # A diffusion speed, set as the maximum wave propagation speed
     κ = Cₖ * cₘ * 0.5 * ( Δx₋ + Δx₊ ) # Artificial conduction coefficient

@@ -3,7 +3,6 @@ module Euler1D
 include("Types.jl")                 # Definition of types used to hold things like simulation data
 include("Configuration.jl")         # Definition of functions responsible for configuring the simulation
 include("EquationOfState.jl")       # Definition of functions that compute quantities from the equation of state
-include("SpatialDerivatives.jl")    # Definition of functions to calculate spatial derivatives
 include("Timestepping.jl")          # Definition of functions for timestepping.
 include("ArtificialDissipation.jl") # Definition of the artificial viscosity and conductivity terms, responsible for stabilizing the solution near shocks and contact surfaces
 include("EulerEquations.jl")        # Definition of functions that implement the right hand sides of the Euler equations 
