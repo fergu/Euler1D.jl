@@ -14,8 +14,7 @@ A value of type `T` representing the value of the artificial viscosity.
 - `u`: The velocity of the zone boundaries, with superscripts - and + referring to the left and right boundaries of the zone, respectively. (Unit: m/s)
 
 # Notes
-- This artificial viscosity is based on the method described by Wilkins (1980), which in turn relies upon the methods of Von Neumann and Richtmyer (1950) and Landschoff (1955). This functions by adding the artificial viscosity computed by this function to the pressure field during the [`Momentum!()`](@ref) and [`Energy!()`](@ref) updates.
-- The calculation of artificial viscosity requires a gradient of velocity, ∂u/∂x. This is computed using [`∂∂x_ZoneEdgeToZoneCenter()`](@ref). See the documentation of that function for details on the numerical method used for gradient calculation.
+- This artificial viscosity is based on the method described by Wilkins (1980), which in turn relies upon the methods of Von Neumann and Richtmyer (1950) and Landschoff (1955). The values computed by this function should be added to the pressure field during governing equation updates.
 - This function returns zero if `∂u/∂x > 0`, which will be the case for regions where the flow is expanding. This is done to restrict artificial viscosity only to regions of compression.
 """
 function artificial_viscosity( Cᵥ::T, c::T, ρ::T, Δx::T, u₋::T, u₊::T ) where { T <: AbstractFloat }
@@ -68,14 +67,19 @@ A value of type `T` representing the artifical flux of internal energy across a 
 
 # Notes
 The artificial conductivity is modeled as a Fickian diffusivity. That is, the flux of energy across a zone boundary, fₑ, is described by
+
     fₑ = -κ ∂e/∂x
+
 where e is the internal energy per unit mass and κ is the (artificial) conductivity coefficient.
 The gradient of internal energy is treated with a simple forward finite difference. The artificial conductivity coefficient is modeled as
+
     κ = Cₖ * cₘ * Δx
+
 where
-- Cₖ an O(1) coefficient.
-- cₘ  is a characteristic velocity taken to be max(c̄±u, c̄), where c̄=0.5*(c₋+c₊) is the average speed of sound of the two adjacent zones and u is the velocity of the zone interface. 
-- Δx is the distance between the zone centers
+- `Cₖ` an O(1) coefficient.
+- `cₘ`  is a characteristic velocity taken to be max(c̄±u, c̄), where c̄=0.5*(c₋+c₊) is the average speed of sound of the two adjacent zones and u is the velocity of the zone interface. 
+- `Δx` is the distance between the zone centers
+
 By convention, this leads to a positive flux if energy is diffusing in the positive x direction, and negative if it is diffusing in the negative x direction.
 """
 function artificial_conductivity( Cₖ::T, u::T, c₋::T, e₋::T, Δx₋::T, c₊::T, e₊::T, Δx₊::T ) where { T <: AbstractFloat }

@@ -12,7 +12,9 @@ A scalar of type `T` representing the density of a zone.
 
 # Notes
 Density is calculated as:
+
     ρ = mass / Δx
+
 As this is the physical definition of density, this calculation does not assume any particular equation of state.
 """
 EOS_Density( mass::T, Δx::T ) where { T <: AbstractFloat } = mass / Δx
@@ -58,7 +60,9 @@ A scalar of type `T` representing the pressure within the zone.
 
 # Notes
 The pressure is calculated as:
-    P = ( γ - 1 ) * ρ * e
+
+    P = ( γ - 1 ) ⋅ ρ ⋅ e
+
 The four-parameter version of this function computes density using [`EOS_Density()`](@ref). See the documentation for that function for further details.
 """
 EOS_Pressure( γ::T, ρ::T, e::T ) where { T <: AbstractFloat } = ( γ - 1.0 ) * ρ * e
@@ -106,7 +110,9 @@ A scalar of type `T` representing the speed of sound in the zone.
 
 # Notes
 The speed of sound is calculated as:
+
     c = √( γ * P / ρ )
+
 The four-parameter version of this function computes density using [`EOS_Density()`](@ref) and pressure using [`EOS_Pressure()`](@ref). See the documentation of those functions for further details.
 """
 EOS_SpeedOfSound( γ::T, P::T, ρ::T ) where { T <: AbstractFloat } = sqrt( γ * P / ρ )
