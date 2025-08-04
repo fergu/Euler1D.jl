@@ -60,11 +60,11 @@ where ``e`` is the internal energy per unit mass.
 
 A similar procedure as the momentum equation is undertaken for the discretization of the energy equation. Semi-discretizing the energy equation for a zone with index ``i`` yields
 ```math
-\frac{\partial e}{\partial t} = - \frac{P}{\rho_0} \frac{u_{i+1/2} - u_{i-1/2}}{x_{i+1/2} - x_{i-1/2}} .
+\frac{\partial e}{\partial t} = - \frac{P_i}{\rho_0} \frac{u_{i+1/2} - u_{i-1/2}}{x_{i+1/2} - x_{i-1/2}} .
 ```
 Noting that ``x_{i+1/2} - x_{i-1/2} = \Delta x_i`` is the length of the ``i``-th zone, and recalling that ``\rho_0 \Delta x_i = m_i``, this expression can be simplified to
 ```math
-\boxed{\frac{\partial e}{\partial t} = - \frac{P}{m_i} (u_{i+1/2} - u_{i-1/2} ) }
+\boxed{\frac{\partial e}{\partial t} = - \frac{P_i}{m_i} (u_{i+1/2} - u_{i-1/2} ) }
 ```
 
 ## Equations of State
