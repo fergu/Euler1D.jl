@@ -1,5 +1,5 @@
 """
-    AdvanceToTime( state::Simulation{T}, stoptime::T, Δt::T; exact::Bool=false ) where { T <: AbstractFloat }
+    AdvanceToTime( state::Simulation{T}, stoptime::T; timestep::Union{T,Nothing}=nothing, exact::Bool=false ) where { T <: AbstractFloat }
 
 Advance the simulation with initial state `state` to a time specified by `stoptime` with a fixed timestep. 
 
@@ -9,7 +9,7 @@ A `Simulation{T}` representing the state at the end of the final cycle.
 # Arguments
 - `input`: A `Simulation{T}` representing the simulation state at the start of the first cycle.
 - `stoptime`: The time to advance to. (Unit: s)
-- `Δt`: The timestep size. (Unit: s)
+- `timestep`: The timestep size, or `nothing` to use adaptive timestepping. (Unit: s, Default: `nothing`)
 - `exact`: If true, try to stop as close as possible to `stoptime` by adjusting the final timestep size (Default: `false`)
 
 # Notes
@@ -17,8 +17,9 @@ A `Simulation{T}` representing the state at the end of the final cycle.
 - This function allocates two `deepcopy()`s of the input state and returns the copy corresponding to the final state.
 - This function simply calls `AdvanceOneCycle!` repeatedly until the simulation time reaches `stoptime`. The primary advantage to using this function as opposed to [`AdvanceOneCycle()`](@ref) or [`AdvanceNCycles()`](@ref) is that various backing arrays are pre-allocated to improve speed.
 - If `exact=true`, the timestep of the final cycle is adjusted so that the time of the final state is as close as possible to `stoptime`.
+- If using adaptive timestepping, the timestep size is determined based on the minimum time for an acoustic wave to traverse a zone. See [`CalculateTimestepSize()`](@ref) for further details.
 """
-function AdvanceToTime( state::Simulation{T}, stoptime::T, Δt::T; exact::Bool=false ) where { T <: AbstractFloat }
+function AdvanceToTime( state::Simulation{T}, stoptime::T; timestep::Union{T,Nothing}=nothing, exact::Bool=false ) where { T <: AbstractFloat }
     # To start, we'll make two copies of the input state that we'll cycle between to avoid allocations in the actual numerical scheme
     # We need two copies as otherwise the algorithm will mutate the input state, which we don't want
     input = deepcopy(state)
@@ -26,60 +27,30 @@ function AdvanceToTime( state::Simulation{T}, stoptime::T, Δt::T; exact::Bool=f
     while ( output.time.x <= stoptime )
         # Swap the input and output structures
         input, output = output, input
+
+        # Compute Δt if a timestep is not supplied (e.g., `nothing`), otherwise use the supplied timestep
+        # We need to do this here (rather than relying on the identical instructions inside of `AdvanceOneCycle!`) because we may need to modify the timestep to stop at an exact time
+        if isnothing( timestep )
+            Δt = CalculateTimestepSize( input )
+        else
+            Δt = timestep
+        end
+
         # Reduce Δt if we want to end at exactly the specified time
         if ( ( input.time.x + Δt > stoptime ) & ( exact == true ) )
-            Δt = stoptime - input.time.x + eps(Float64) # We add machine epsilon to Δt just to ensure the less-than-or-equal-to check passes after this step
+            Δt = stoptime - input.time.x + eps(T) # We add machine epsilon to Δt just to ensure the less-than-or-equal-to check passes after this step
         end
+
         # Advance by one cycle
-        AdvanceOneCycle!( output, input, Δt )
+        AdvanceOneCycle!( output, input; timestep=Δt )
     end
     return output
 end
 
 """
-    AdvanceToTime( state::Simulation{T}, stoptime::T; exact::Bool=false ) where { T <: AbstractFloat }
+    AdvanceOneCycle!( output::Simulation{T}, input::Simulation{T}; timestep::Union{T,Nothing}=nothing ) where { T <: AbstractFloat }
 
-Advance the simulation with initial state `state` to a time specified by `stoptime` with a variable timestep. 
-
-# Returns
-A `Simulation{T}` representing the state at the end of the final cycle
-
-# Arguments
-- `input`: A `Simulation{T}` representing the simulation state at the start of the first cycle.
-- `stoptime`: The time to advance to. (Unit: s)
-- `exact`: If true, try to stop as close as possible to `stoptime` by adjusting the final timestep size (Default: false)
-
-# Notes
-- The current simulation time is determined by the `Simulation` field `state.time`. If `state.time > stoptime`, no steps will be taken.
-- This function allocates two `deepcopy()`s of the input state and returns the copy corresponding to the final state.
-- This function simply calls `AdvanceOneCycle!()` repeatedly until the simulation time reaches `stoptime`. The primary advantage to using this function as opposed to [`AdvanceOneCycle()`](@ref) or [`AdvanceNCycles()`](@ref) is that various backing arrays are pre-allocated to improve speed.
-- The timestep size, Δt, is determined for each cycle based on the minimum time for an acoustic wave to traverse a zone. See the documentation for [`CalculateTimestepSize()`](@ref) for further details. 
-- If `exact=true`, the timestep of the final cycle is adjusted so that the time of the final state is as close as possible to `stoptime`.
-"""
-function AdvanceToTime( state::Simulation{T}, stoptime::T; exact::Bool=false ) where { T <: AbstractFloat }
-    # To start, we'll make two copies of the input state that we'll cycle between to avoid allocations in the actual numerical scheme
-    # We need two copies as otherwise the algorithm will mutate the input state, which we don't want
-    input = deepcopy(state)
-    output = deepcopy(state)
-    while ( output.time.x <= stoptime )
-        # Swap the input and output structures
-        input, output = output, input
-        # Get the timestep required by the CFL condition
-        Δt = CalculateTimestepSize( input )
-        # Reduce Δt if we want to end at exactly the specified time
-        if ( ( input.time.x + Δt > stoptime ) & ( exact == true ) )
-            Δt = stoptime - input.time.x + eps(Float64) # We add machine epsilon to Δt just to ensure the less-than-or-equal-to check passes after this step
-        end
-        # Advance by one cycle
-        AdvanceOneCycle!( output, input, Δt )
-    end
-    return output
-end
-
-"""
-    AdvanceOneCycle!( output::Simulation{T}, input::Simulation{T}, Δt::T ) where { T <: AbstractFloat }
-
-Advance the simulation by one cycle with a timestep of Δt.
+Advance the simulation by one cycle.
 
 # Returns
 `nothing`. Modifies `output` in-place.
@@ -87,84 +58,49 @@ Advance the simulation by one cycle with a timestep of Δt.
 # Arguments
 - `output`: A `Simulation{T}` that will represent the output state. This will be modified by the function to represent the simulation state after advancing one cycle.
 - `input`: A `Simulation{T}` that represents the simulation state at the start of the cycle.
-- `Δt`: The size of the time step. (Unit: s)
+- `timestep`: The size of the time step, or `nothing` to use adaptive timestepping. (Unit: s, Default: `nothing`)
 
 # Side Effects
 - All fields of `output` are modified in-place.
+- If using adaptive timestepping, the timestep size is determined based on the minimum time for an acoustic wave to traverse a zone. See [`CalculateTimestepSize()`](@ref) for further details.
 """
-function AdvanceOneCycle!( output::Simulation{T}, input::Simulation{T}, Δt::T ) where { T <: AbstractFloat }
+function AdvanceOneCycle!( output::Simulation{T}, input::Simulation{T}; timestep::Union{T,Nothing}=nothing ) where { T <: AbstractFloat }
+    # Compute Δt if a timestep is not supplied (e.g., `nothing`), otherwise use the supplied timestep
+    if isnothing( timestep )
+        Δt = CalculateTimestepSize( input )
+    else
+        Δt = timestep
+    end
+
     cycle!( output, input, Δt )
 end
 
 """
-    AdvanceOneCycle!( output::Simulation{T}, input::Simulation{T} ) where { T <: AbstractFloat }
+    AdvanceOneCycle( state::Simulation{T}; timestep::Union{T,Nothing}=nothing ) where { T <: AbstractFloat }
 
-Advance the simulation by one cycle. 
-
-# Returns
-`nothing`. Modifies `output` in-place.
-
-# Arguments
-- `output`: A `Simulation{T}` that will represent the output state. This will be modified by the function to represent the simulation state after advancing one cycle.
-- `input`: A `Simulation{T}` representing the simulation state at the start of the cycle
-
-# Notes
-- The timestep size, Δt, is determined based on the minimum time for an acoustic wave to traverse a zone. See [`CalculateTimestepSize()`](@ref) for further details.
-
-# Side Effects
-- All fields of `output` are modified in-place.
-"""
-function AdvanceOneCycle!( output::Simulation{T}, input::Simulation{T} ) where { T <: AbstractFloat }
-    Δt = CalculateTimestepSize( input )
-    AdvanceOneCycle!( output, input, Δt )
-end
-
-"""
-    AdvanceOneCycle( state::Simulation{T}, Δt::T ) where { T <: AbstractFloat }
-
-Advance the simulation by one cycle with a timestep of Δt.
+Advance the simulation by one cycle.
 
 # Returns
 A `Simulation{T}` representing the state at the end of the cycle
 
 # Arguments
 - `input`: A `Simulation{T}` representing the simulation state at the start of the cycle.
-- `Δt`: The size of the time step. (Unit: s)
+- `timestep`: The size of the time step, or `nothing` to use adaptive timestepping. (Unit: s, Default: `nothing`)
 
 # Notes
 - This function allocates a `deepcopy()` of the input state. The copy is modified and returned from this function.
+- If using adaptive timestepping, the timestep size is determined based on the minimum time for an acoustic wave to traverse a zone. See [`CalculateTimestepSize()`](@ref) for further details.
 """
-function AdvanceOneCycle( state::Simulation{T}, Δt::T ) where { T <: AbstractFloat }
+function AdvanceOneCycle( state::Simulation{T}; timestep::Union{T,Nothing}=nothing ) where { T <: AbstractFloat }
     output = deepcopy( state )
-    AdvanceOneCycle!( output, state, Δt )
+    AdvanceOneCycle!( output, state; timestep=timestep )
     return output
 end
 
 """
-    AdvanceOneCycle( state::Simulation{T} ) where { T <: AbstractFloat }
+    AdvanceNCycles( state::Simulation{T}, ncycles::UInt; timestep::Union{T,Nothing}=nothing ) where { T <: AbstractFloat }
 
-Advance the simulation by one cycle. 
-
-# Returns
-- A `Simulation{T}` representing the state at the end of the cycle
-
-# Arguments
-- `input`: A `Simulation{T}` representing the simulation state at the start of the cycle
-
-# Notes
-- This function allocates a `deepcopy()` of the input state and returns the copy.
-- The timestep size, Δt, is determined based on the minimum time for an acoustic wave to traverse a zone. See [`CalculateTimestepSize()`](@ref) for further details.
-"""
-function AdvanceOneCycle( state::Simulation{T} ) where { T <: AbstractFloat }
-    output = deepcopy( state )
-    AdvanceOneCycle!( output, state )
-    return output
-end
-
-"""
-    AdvanceNCycles( state::Simulation{T}, ncycles::UInt, Δt::T ) where { T <: AbstractFloat }
-
-Advance the simulation by `ncycles` cycles with a fixed timestep.
+Advance the simulation by `ncycles` cycles.
 
 # Returns
 - A `Simulation{T}` representing the state at the end of the final cycle
@@ -172,13 +108,14 @@ Advance the simulation by `ncycles` cycles with a fixed timestep.
 # Arguments
 - `input`: A `Simulation{T}` representing the simulation state at the start of the first cycle.
 - `ncycles`: The number of cycles to advance.
-- `Δt`: The size of the time step. (Unit: s)
+- `timestep`: The size of the time step, or `nothing` to use adaptive timestepping. (Unit: s, Default: nothing)
 
 # Notes
 - This function allocates two `deepcopy()`s of the input state and returns the copy corresponding to the final state.
 - This function calls [`AdvanceOneCycle!()`](@ref) a total of `ncycles` times to advance the simulation. The primary advantage to using this function as opposed to [`AdvanceOneCycle()`](@ref) if the number of cycles to advance is known is that various backing arrays are pre-allocated to improve speed.
+- If using adaptive timestepping, the timestep size is determined based on the minimum time for an acoustic wave to traverse a zone. See [`CalculateTimestepSize()`](@ref) for further details.
 """
-function AdvanceNCycles( state::Simulation{T}, ncycles::UInt, Δt::Float64 ) where { T <: AbstractFloat }
+function AdvanceNCycles( state::Simulation{T}, ncycles::UInt; timestep::Union{T,Nothing}=nothing ) where { T <: AbstractFloat }
     # To start, we'll make two copies of the input state that we'll cycle between to avoid allocations in the actual numerical scheme
     # We need two copies as otherwise the algorithm will mutate the input state, which we don't want
     input = deepcopy(state)
@@ -187,47 +124,15 @@ function AdvanceNCycles( state::Simulation{T}, ncycles::UInt, Δt::Float64 ) whe
     for cycle in range( 1, ncycles )
         # Swap the input and output structures
         input, output = output, input
+        
         # Advance by one cycle
-        AdvanceOneCycle!( output, input, Δt )
+        AdvanceOneCycle!( output, input; timestep=timestep )
     end
     # Return the result
     return output
 end
 
-"""
-    AdvanceNCycles( state::Simulation{T}, ncycles::UInt ) where { T <: AbstractFloat }
-
-Advance the simulation by `ncycles` cycles with a variable timestep. 
-
-# Returns
-- A `Simulation{T}` representing the state at the end of the final cycle
-
-# Arguments
-- `input`: A `Simulation{T}` representing the simulation state at the start of the first cycle.
-- `ncycles`: The number of cycles to advance. (Unit: ⋅)
-
-# Notes
-- This function allocates two `deepcopy()`s of the input state and returns the copy corresponding to the final state.
-- This function calls [`AdvanceOneCycle!()`](@ref) a total of `ncycles` times to advance the simulation. The primary advantage to using this function as opposed to [`AdvanceOneCycle()`](@ref) if the number of cycles to advance is known is that various backing arrays are pre-allocated to improve speed.
-- The timestep size, Δt, is determined based on the minimum time for an acoustic wave to traverse a zone. See [`CalculateTimestepSize()`](@ref) for further details.
-"""
-function AdvanceNCycles( state::Simulation{T}, ncycles::UInt ) where { T <: AbstractFloat }
-    # To start, we'll make two copies of the input state that we'll cycle between to avoid allocations in the actual numerical scheme
-    # We need two copies as otherwise the algorithm will mutate the input state, which we don't want
-    input = deepcopy(state)
-    output = deepcopy(state)
-    # Perform the requested number of cycles
-    for cycle in range( 1, ncycles )
-        # Swap the input and output structures
-        input, output = output, input
-        # Get the timestep required by the CFL condition
-        Δt = CalculateTimestepSize( input )
-        # Advance by one cycle
-        AdvanceOneCycle!( output, input, Δt )
-    end
-    # Return the result
-    return output
-end
+AdvanceNCycles( state::Simulation{T}, ncycles::Int; timestep::Union{T,Nothing}=nothing ) where { T <: AbstractFloat } = AdvanceNCycles( state, UInt( ncycles ); timestep=timestep )
 
 """
     CalculateTimestepSize( state::Simulation{T} ) where { T <: AbstractFloat }
