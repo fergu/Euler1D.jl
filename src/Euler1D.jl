@@ -2,6 +2,7 @@ module Euler1D
 
 include("Types.jl")                 # Definition of types used to hold things like simulation data
 include("Configuration.jl")         # Definition of functions responsible for configuring the simulation
+include("Callbacks.jl")             # Definition of functions responsible for performing user-defined callbacks
 include("EquationOfState.jl")       # Definition of functions that compute quantities from the equation of state
 include("Timestepping.jl")          # Definition of functions for timestepping.
 include("ArtificialDissipation.jl") # Definition of the artificial viscosity and conductivity terms, responsible for stabilizing the solution near shocks and contact surfaces
@@ -53,10 +54,11 @@ function cycle!( output::Simulation{T}, input::Simulation{T}, Δt::T ) where { T
     !iszero( output.viscosity_coefficient ) && artificial_viscosity!( output )
     # as well as the new artificial conductivity, also only if the coefficient is nonzero
     !iszero( output.conductivity_coefficient ) && artificial_conductivity!( output )
-    # Last, update the current simulation time
+    # Update the current simulation time
     output.time.x = input.time.x + Δt
     output.dt.x = Δt
     output.cycles.x = input.cycles.x + 1
+
     if ( output.cycles.x > output.max_cycles )
         error("Current cycle ($(output.cycles.x)) exceeds maximum number of cycles ($(output.max_cycles)). Exiting.")
     end

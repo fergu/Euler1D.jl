@@ -1,3 +1,31 @@
+# These are some structs to define callback functions
+abstract type AbstractSimulationCallback end
+
+struct CycleCallback{F,T} <: AbstractSimulationCallback
+    func::F
+    every::T
+    last_called::Base.RefValue{T}
+end
+
+struct TimeCallback{F,T} <: AbstractSimulationCallback
+    func::F
+    times::Vector{T}
+    last_called::Base.RefValue{T}
+end
+
+struct TimeDeltaCallback{F,T} <: AbstractSimulationCallback
+    func::F
+    dt::T
+    last_called::Base.RefValue{T}
+end
+
+struct SimulationCallback
+    # Vectors of callback functions to be called at various points during the simulation
+    callback_cycle::Vector{CycleCallback}         # A vector of functions to be called every N cycles
+    callback_time::Vector{TimeCallback}           # A vector of functions to be called at a fixed set of times
+    callback_dt::Vector{TimeDeltaCallback}        # A vector of functions to be called at fixed time increments
+end
+
 """
     struct Simulation{T}
 
@@ -75,5 +103,6 @@ function Base.show( io::IO, obj::Simulation{T} ) where T
     println("\tNumber of zones: ", obj.nzones)
     println("\tAvailable fields: ", join( string.( fieldnames( Simulation{T} ) ), ", " ) )
 end
+
 
 export Simulation
