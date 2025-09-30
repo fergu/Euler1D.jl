@@ -15,6 +15,11 @@ function TestCycleCallbacks()
         global every_ten_cycles_callback_count += 1
     end
 
+    global every_ten_cycles_no_init_callback_count = 0
+    function cycle_count_every_ten_no_init( state::Simulation{T} ) where { T <: AbstractFloat }
+        global every_ten_cycles_no_init_callback_count += 1
+    end
+
     # Ratio of specific heats
     function γ( x::Float64 )
         return 1.4
@@ -48,8 +53,9 @@ function TestCycleCallbacks()
 
     # Set up and register the callbacks
     callbacks = ConfigureSimulationCallbacks( init_state )
-    RegisterCycleCallback!( callbacks, init_state, cycle_count_every_one, 1 )
-    RegisterCycleCallback!( callbacks, init_state, cycle_count_every_ten, 10 )
+    RegisterCycleCallback!( callbacks, cycle_count_every_one, 1; simulation=init_state )
+    RegisterCycleCallback!( callbacks, cycle_count_every_ten, 10; simulation=init_state )
+    RegisterCycleCallback!( callbacks, cycle_count_every_ten_no_init, 10 )
 
     final_state = AdvanceNCycles( init_state, 1000; callbacks=callbacks ) # Advance 1000 cycles
 
@@ -60,6 +66,9 @@ function TestCycleCallbacks()
     # Second test that the final cycle count divided by 10 is equal to the number of times the second callback (which should only fire every 10 cycles) was called
     # This tests that callbacks that should only fire periodically are correctly doing so
     @test floor( final_state.cycles.x / 10 ) == every_ten_cycles_callback_count
+
+    # The third test mainly makes sure that the code doesn't error if the simulation input is not provided
+    @test floor( final_state.cycles.x / 10 ) == every_ten_cycles_no_init_callback_count
 end
 
 TestCycleCallbacks()

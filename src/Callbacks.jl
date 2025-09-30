@@ -24,35 +24,41 @@ function ConfigureSimulationCallbacks( simulation::Simulation{T} ) where { T <: 
 end
 
 """
-    function RegisterCycleCallback!( input::Simulation{T}, func::Function, N::UInt ) where { T <: AbstractFloat }
+    RegisterCycleCallback!( callbacks::SimulationCallback, simulation::Simulation{T}, func::Function, N::UInt ) where { T <: AbstractFloat }
 
-Register a function `func` to be executed every `N` cycles of the simulation defined by `input`
+Register a function `func` to be executed every `N` cycles of the simulation defined by `simulation`. Callbacks are stored in the `callbacks` input parameter
 
 # Returns
-`nothing`, mutates the `input` parameter
+`nothing`, mutates the `callbacks` parameter
 
 # Parameters
-- `input` : A `Simulation{T}` to register the callback to
+- `callbacks` : A `SimulationCallback` that describes the callbacks to be executed
+- `simulation` : A `Simulation{T}` used to initialize the callback
 - `func` : A `Function` that should be called by this callback. See Notes for information on expected function signature
 - `N` : A `UInt` indicating how many cycles should occur between callbacks. Must be N ≥ 1
 
 # Notes
 - `func` is expected to accept arguments of the form `CallbackFunction( arg::Simulation{T} ) where { T <: AbstractFloat }`. `arg` will be the simulation state at the end of the cycle that the callback is executed on.
+- The `simulation` argument is used to initalize the callback, primarily setting the in
 """
-function RegisterCycleCallback!( callbacks::SimulationCallback, simulation::Simulation{T}, func::Function, N::UInt ) where { T <: AbstractFloat }
+function RegisterCycleCallback!( callbacks::SimulationCallback, func::Function, N::UInt; simulation::Union{Simulation{T},Nothing}=nothing ) where { T <: AbstractFloat }
     # Check to be sure the requested callback frequency is at most once per cycle (i.e., not zero or negative)
     if ( N < 1 )
         throw("Cycle callback frequency must be ≥ 1 cycle")
     end
 
+    # Determine the initial cycle for the callback
+    # This is set to the current simulation cycle if `simulation` is not `nothing`, otherwise 0
+    initial_cycle = isnothing( simulation ) ? UInt( 0 ) : simulation.cycles.x
+
     # Create the callback
-    cb = CycleCallback( func, N, Ref( simulation.cycles.x ) )
+    cb = CycleCallback( func, N, Ref( initial_cycle ) )
 
     # Add it to the list of callbacks
     push!( callbacks.callback_cycle, cb )
 end
 
-RegisterCycleCallback!( callbacks::SimulationCallback, simulation::Simulation{T}, func::Function, N::Int ) where { T <: AbstractFloat } = RegisterCycleCallback!( callbacks, simulation, func, UInt( N ) )
+RegisterCycleCallback!( callbacks::SimulationCallback, func::Function, N::Int; simulation::Union{Simulation{T},Nothing}=nothing ) where { T <: AbstractFloat } = RegisterCycleCallback!( callbacks, func, UInt( N ); simulation=simulation )
 
 export ConfigureSimulationCallbacks
 export RegisterCycleCallback!
