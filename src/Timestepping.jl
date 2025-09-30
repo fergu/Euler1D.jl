@@ -30,11 +30,7 @@ function AdvanceToTime( state::Simulation{T}, stoptime::T; timestep::Union{T,Not
 
         # Compute Δt if a timestep is not supplied (e.g., `nothing`), otherwise use the supplied timestep
         # We need to do this here (rather than relying on the identical instructions inside of `AdvanceOneCycle!`) because we may need to modify the timestep to stop at an exact time
-        if isnothing( timestep )
-            Δt = CalculateTimestepSize( input )
-        else
-            Δt = timestep
-        end
+        Δt = isnothing( timestep ) ? CalculateTimestepSize( input ) : timestep
 
         # Reduce Δt if we want to end at exactly the specified time
         if ( ( input.time.x + Δt > stoptime ) & ( exact == true ) )
@@ -66,11 +62,7 @@ Advance the simulation by one cycle.
 """
 function AdvanceOneCycle!( output::Simulation{T}, input::Simulation{T}; timestep::Union{T,Nothing}=nothing ) where { T <: AbstractFloat }
     # Compute Δt if a timestep is not supplied (e.g., `nothing`), otherwise use the supplied timestep
-    if isnothing( timestep )
-        Δt = CalculateTimestepSize( input )
-    else
-        Δt = timestep
-    end
+    Δt = isnothing( timestep ) ? CalculateTimestepSize( input ) : timestep
 
     cycle!( output, input, Δt )
 end
