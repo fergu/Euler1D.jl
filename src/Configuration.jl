@@ -98,7 +98,7 @@ function InitializeSimulation( parameters::Dict{String, Any} )
                             zeros( number_of_zones ),               # Vector of artificial viscosities (zone centered)
                             zeros( number_of_zones + 1 ),           # Vector of artificial energy conduction (edge centered)
                             zeros( number_of_zones + 1 ),           # Vector of the acceleration of zone edges (edge centered)
-                            zeros( number_of_zones ),               # Vector of the time rate of change of internal energy of a zone (zone centered)
+                            zeros( number_of_zones )                # Vector of the time rate of change of internal energy of a zone (zone centered)
                            )
 
     # Now initialize the simulation fields using the supplied functions
