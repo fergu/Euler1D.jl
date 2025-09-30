@@ -1,11 +1,4 @@
 function EvaluateCycleCallbacks( simulation::Simulation{T}, callbacks::Vector{CycleCallback} ) where { T <: AbstractFloat }
-    # Per-cycle callbacks
-    # FIXME: This currently misbehaves. Since the output vector becomes the input vector on the next step for any of the timestepping routines that pre-allocate storage
-    #       The changes made here become inputs on the next step - in other words, callbacks end up happening twice
-    #       e.g., when cb.last_called.x is updated from cycle 0 to cycle 10, the updated struct then becomes an input on the next cycle, 
-    #       but since we call callbacks based on the *output* state, we end up using old data (because the output state on the next cycle was the input state on this one, which was not updated)
-    #       This can probably be addressed by somehow updating the output structs based on input data, but I need to think about it
-    #
     for cb in callbacks
         if ( simulation.cycles.x >= cb.last_called.x + cb.every )
             # Call the callback
