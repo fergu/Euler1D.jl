@@ -53,8 +53,8 @@ function TestCycleCallbacks()
 
     # Set up and register the callbacks
     callbacks = ConfigureSimulationCallbacks( init_state )
-    RegisterCycleCallback!( callbacks, cycle_count_every_one, 1; simulation=init_state )
-    RegisterCycleCallback!( callbacks, cycle_count_every_ten, 10; simulation=init_state )
+    RegisterCycleCallback!( callbacks, cycle_count_every_one, 1, 0 )
+    RegisterCycleCallback!( callbacks, cycle_count_every_ten, 10, 0 )
     RegisterCycleCallback!( callbacks, cycle_count_every_ten_no_init, 10 )
 
     final_state = AdvanceNCycles( init_state, 1000; callbacks=callbacks ) # Advance 1000 cycles
