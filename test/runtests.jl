@@ -3,7 +3,12 @@ using Euler1D
 
 # Test the callback functions
 @testset "Callbacks" begin
-    include("CycleCallbacks.jl")
+    @testset "Cycle Callbacks" begin
+        include("CycleCallbacks.jl")
+    end
+    @testset "Time Callbacks" begin
+        include("TimeCallbacks.jl")
+    end
 end
 
 # Test Sod's shock tube

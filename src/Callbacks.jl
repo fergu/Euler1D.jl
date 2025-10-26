@@ -7,11 +7,23 @@ function EvaluateCycleCallbacks( simulation::Simulation{T}, callbacks::Vector{Cy
             cb.last_called.x = simulation.cycles.x
         end
     end
-
 end
+
+function EvaluateTimeCallbacks( simulation::Simulation{T}, callbacks::Vector{TimeCallback} ) where { T <: AbstractFloat }
+    for cb in callbacks
+        if ( simulation.time.x >= cb.times[ cb.next_index.x ] )
+            # Call the callback
+            cb.func( simulation )
+            # Update the last called cycle
+            cb.next_index.x = cb.next_index.x + 1
+        end
+    end
+end
+
 
 function EvaluateCallbacks( simulation::Simulation{T}, callbacks::SimulationCallback ) where { T <: AbstractFloat }
     EvaluateCycleCallbacks( simulation, callbacks.callback_cycle )
+    EvaluateTimeCallbacks( simulation, callbacks.callback_time )
 end
 
 function ConfigureSimulationCallbacks( simulation::Simulation{T} ) where { T <: AbstractFloat }
@@ -32,9 +44,9 @@ Register a function `func` to be executed every `N` cycles of the simulation sta
 `nothing`, mutates the `callbacks` parameter
 
 # Parameters
-- `callbacks` : A `SimulationCallback` that describes the callbacks to be executed
-- `func` : A `Function` that should be called by this callback. See Notes for information on expected function signature
-- `N` : A `UInt` indicating how many cycles should occur between callbacks. Must be N ≥ 1
+- `callbacks`: A `SimulationCallback` that describes the callbacks to be executed
+- `func`: A `Function` that should be called by this callback. See Notes for information on expected function signature
+- `N`: A `UInt` indicating how many cycles should occur between callbacks. Must be N ≥ 1
 - `initial_cycle`: A `UInt` indicating the cycle number to start calling this callback at
 
 # Notes
@@ -56,5 +68,42 @@ end
 # These are just a few overloaded calls to catch cases where either N or initial_cycle are given as signed integer arguments
 RegisterCycleCallback!( callbacks::SimulationCallback, func::Function, N::Int, initial_cycle::Union{Int,UInt}=0 ) = RegisterCycleCallback!( callbacks, func, convert(UInt, N ), convert(UInt, initial_cycle) )
 
+"""
+    RegisterTimeCallback!( callbacks::SimulationCallback, func::Function, times::Vector{T} ) where { T <: AbstractFloat }
+
+Register a function `func` to be executed at the list of times specified in `times`. Callbacks are stored in the `callbacks` input parameter and passed as an argument to the timestepping routines
+
+# Returns
+`nothing`, mutates the `callbacks` parameter
+
+# Parameters
+- `callbacks`: A `SimulationCallback` that describes the callbacks to be executed
+- `func`: A `Function` that should be called by this callback. See Notes for information on expected function signature
+- `times`: A `Vector{T}` indicating the times at which to execute the callback
+
+# Notes
+- `func` is expected to accept arguments of the form `CallbackFunction( arg::Simulation{T} ) where { T <: AbstractFloat }`. `arg` will be the simulation state at the end of the cycle that the callback is executed on.
+- Callbacks are executed at the end of the first cycle where the simulation time is greater than the next element in `times`. As a result, it is not guaranteed that the callback will be called at exactly the time specified in the `times` vector.
+- `times` is sorted into ascending order before being stored. 
+"""
+function RegisterTimeCallback!( callbacks::SimulationCallback, func::Function, times::Vector{T} ) where { T <: AbstractFloat }
+    # Create a copy of `times` and sort it into ascending order
+    sorted_times = deepcopy( times )
+    sorted_times = sort( times )
+    # Append Infinity (Inf) to the end. 
+    # We do this because the check to determine if the callback should be called works by comparing the value of `times` at the next index to be called against the current simulation time
+    # If the current simulation time > time[index], the callback is run and `index` is set to index+1
+    # Therefore, if we don't append a dummy element to the end of the `times` array, we will read off the end of the array after the last element in `times` is read
+    # Appending ∞ specifically ensures that there is no chance this dummy element will ever trigger the callback
+    push!( sorted_times, convert(T, Inf) )
+
+    # Create the callback
+    cb = TimeCallback( func, sorted_times, Ref( UInt(1) ) )
+
+    # Add it to the list of callbacks
+    push!( callbacks.callback_time, cb )
+end
+
 export ConfigureSimulationCallbacks
 export RegisterCycleCallback!
+export RegisterTimeCallback!

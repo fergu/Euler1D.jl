@@ -1,16 +1,16 @@
 # These are some structs to define callback functions
 abstract type AbstractSimulationCallback end
 
-struct CycleCallback{F,T} <: AbstractSimulationCallback
+struct CycleCallback{F} <: AbstractSimulationCallback
     func::F
-    every::T
-    last_called::Base.RefValue{T}
+    every::UInt
+    last_called::Base.RefValue{UInt}
 end
 
 struct TimeCallback{F,T} <: AbstractSimulationCallback
     func::F
     times::Vector{T}
-    last_called::Base.RefValue{T}
+    next_index::Base.RefValue{UInt}
 end
 
 struct TimeDeltaCallback{F,T} <: AbstractSimulationCallback
