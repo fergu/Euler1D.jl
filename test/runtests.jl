@@ -9,6 +9,9 @@ using Euler1D
     @testset "Time Callbacks" begin
         include("TimeCallbacks.jl")
     end
+    @testset "Time Delta Callbacks" begin
+        include("TimeDeltaCallbacks.jl")
+    end
 end
 
 # Test Sod's shock tube
