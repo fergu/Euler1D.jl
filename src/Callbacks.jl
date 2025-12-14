@@ -73,7 +73,7 @@ Register a function `func` to be executed every `N` cycles of the simulation sta
 - `callbacks`: A `SimulationCallback` that describes the callbacks to be executed
 - `func`: A `Function` that should be called by this callback. See Notes for information on expected function signature
 - `N`: A `UInt` indicating how many cycles should occur between callbacks. Must be N ≥ 1
-- `initial_cycle`: A `UInt` indicating the cycle number to start calling this callback at
+- `initial_cycle`: A `UInt` indicating the cycle number to start calling this callback at (Default: 0)
 
 # Notes
 - `func` is expected to accept arguments of the form `CallbackFunction( arg::Simulation{T} ) where { T <: AbstractFloat }`. `arg` will be the simulation state at the end of the cycle that the callback is executed on.
@@ -133,9 +133,9 @@ function RegisterTimeCallback!( callbacks::SimulationCallback, func::Function, t
 end
 
 """
-    RegisterTimeDeltaCallback!( callbacks::SimulationCallback, func::Function, delta::T; init::T=T(0.0) ) where { T <: AbstractFloat }
+    RegisterTimeDeltaCallback!( callbacks::SimulationCallback, func::Function, delta::T, initial_time::T=T(0.0) ) where { T <: AbstractFloat }
 
-Register a function `func` to be executed every `delta` seconds starting at `init`. Callbacks are stored in the `callbacks` input parameter and passed as an argument to the timestepping routines
+Register a function `func` to be executed every `delta` seconds starting at `initial_time`. Callbacks are stored in the `callbacks` input parameter and passed as an argument to the timestepping routines
 
 # Returns
 `nothing`, mutates the `callbacks` parameter
@@ -144,7 +144,7 @@ Register a function `func` to be executed every `delta` seconds starting at `ini
 - `callbacks`: A `SimulationCallback` that describes the callbacks to be executed
 - `func`: A `Function` that should be called by this callback. See Notes for information on expected function signature
 - `delta`: A scalar `T` indicating how often to execute the callback
-- `init`: A scalar `T` indicating the time of the first callback to execute. (Default: 0.0)
+- `inital_time`: A scalar `T` indicating the time of the first callback to execute. (Default: 0.0)
 
 # Notes
 - `func` is expected to accept arguments of the form `CallbackFunction( arg::Simulation{T} ) where { T <: AbstractFloat }`. `arg` will be the simulation state at the end of the cycle that the callback is executed on.
@@ -152,12 +152,12 @@ Register a function `func` to be executed every `delta` seconds starting at `ini
 - The time of the next callback is computed relative to the expected time of the current callback, _not_ when the callback was actually called. In other words, if a callback that should be called at `t₀` was actually called at `t₀+ϵ` due to the timestep size, the next callback will be scheduled for `t₀+δ`, *not* `t₀+ϵ+δ`.
 - This type of callback is useful for cases where a callback should be called at a fixed temporal spacing between each callback.
 """
-function RegisterTimeDeltaCallback!( callbacks::SimulationCallback, func::Function, delta::T; init::T=T(0.0) ) where { T <: AbstractFloat }
+function RegisterTimeDeltaCallback!( callbacks::SimulationCallback, func::Function, delta::T; initial_time::T=T(0.0) ) where { T <: AbstractFloat }
     # Create our time delta callback
     #   Subtract `delta` from `init` to ensure the callback is first called at `init`
     #   This is required because the criteria used to decide to executed a callback is whether t > t_last + dt
     #   A small factor epsilon is also subtracted to ensture the greater than test passes at t = init
-    cb = TimeDeltaCallback( func, delta, Ref( init - delta - eps(T) ) )
+    cb = TimeDeltaCallback( func, delta, Ref( inital_time - delta - eps(T) ) )
     
     # Add it to the list of callbacks
     push!( callbacks.callback_dt, cb )

@@ -63,9 +63,9 @@ function TestTimeDeltaCallbacks()
     # A test that should be called every 0.05 seconds starting at 0.0, for 21 total calls (the call at t=0 adds an extra 1 call)
     RegisterTimeDeltaCallback!( callbacks, dt_005_test, 0.05 )
     # A test that should be called every 0.01 seconds starting at 0.5, for 51 total calls (the call at t=0.5 adds an extra 1 call)
-    RegisterTimeDeltaCallback!( callbacks, dt_001_init_05_test, 0.01; init=0.5 )
+    RegisterTimeDeltaCallback!( callbacks, dt_001_init_05_test, 0.01, 0.5 )
     # A test that should be called every 0.05 seconds starting at 0.5, for 11 total calls (the call at t=0.5 adds an extra 1 call)
-    RegisterTimeDeltaCallback!( callbacks, dt_005_init_05_test, 0.05; init=0.5 )
+    RegisterTimeDeltaCallback!( callbacks, dt_005_init_05_test, 0.05, 0.5 )
 
     final_state = AdvanceToTime( init_state, 1.0; callbacks=callbacks ) # Advance to t=1.0
 
