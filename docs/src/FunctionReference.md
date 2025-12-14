@@ -5,6 +5,10 @@
     DefaultSimulationParameters
     InitializeSimulation
     UpdateSimulationState!
+    ConfigureSimulationCallbacks
+    RegisterCycleCallback!
+    RegisterTimeCallback!
+    RegisterTimeDeltaCallback!
 ```
 
 ## Timestepping
@@ -15,7 +19,6 @@
     AdvanceNCycles
     CalculateTimestepSize
 ```
-
 
 ## Equation of State
 ```@docs
@@ -33,6 +36,10 @@
 ## Types
 ```@docs
     Simulation
+    SimulationCallback
+    CycleCallback
+    TimeCallback
+    TimeDeltaCallback
 ```
 
 ## Governing Equations

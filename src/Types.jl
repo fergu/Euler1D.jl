@@ -1,24 +1,80 @@
 # These are some structs to define callback functions
 abstract type AbstractSimulationCallback end
 
+"""
+    struct CycleCallback
+
+A structure containing information about a callback intended to be executed every `every` cycles
+
+# Parameters
+- `func`: The `Function` to be executed
+- `every`: How often (in cycles) to execute this callback
+- `last_called`: The last cycle that this callback was called
+
+# Notes
+- This type of callback is useful for cases where a callback should be called at a fixed number of cycles between each callback.
+- While this structure can be initialized directly and added to the `callback_cycle` entry of a [`SimulationCallback`](@ref) structure, it is recommended to call [`RegisterCycleCallback!()`](@ref) instead.
+"""
 struct CycleCallback{F} <: AbstractSimulationCallback
     func::F
     every::UInt
     last_called::Base.RefValue{UInt}
 end
 
+"""
+    struct TimeCallback
+
+A structure containing information about a callback intended to be executed at a fixed list of times given by `times`.
+
+# Parameters
+- `func`: The `Function` to be executed
+- `times`: The list of times at which to execute this callback
+- `next_index`: An index into the `times` vector indicating the next time the callback should be executed.
+
+# Notes
+- This type of callback is useful if the callback should be called at an irregular series of times. See [`CycleCallback`](@ref) if the callback should be called at a regular number of cycles, or [`TimeDeltaCallback`](@ref) if the callback should be called at a fixed temporal cadence.
+- While this structure can be initialized directly and added to the `callback_time` entry of a [`SimulationCallback`](@ref) structure, it is recommended to call [`RegisterTimeCallback!()`](@ref) instead.
+- The entries in `times` are assumed to be sorted in ascending order. [`RegisterTimeCallback!()`](@ref) will handle this automatically, but this will need to be handled manually if creating this structure directly.
+"""
 struct TimeCallback{F,T} <: AbstractSimulationCallback
     func::F
     times::Vector{T}
     next_index::Base.RefValue{UInt}
 end
 
+"""
+    struct TimeDeltaCallback
+
+A structure containing information about a callback intended to be executed every `every` seconds
+
+# Parameters
+- `func`: The `Function` to be executed
+- `every`: How often (in seconds) to execute this callback
+- `last_called`: The last time that this callback was called
+
+# Notes
+- This type of callback is useful for cases where a callback should be called at a fixed temporal spacing between each callback.
+- While this structure can be initialized directly and added to the `callback_dt` entry of a [`SimulationCallback`](@ref) structure, it is recommended to call [`RegisterTimeDeltaCallback!()`](@ref) instead.
+"""
 struct TimeDeltaCallback{F,T} <: AbstractSimulationCallback
     func::F
     dt::T
     last_called::Base.RefValue{T}
 end
 
+"""
+    struct SimulationCallback
+
+A structure containing callbacks to be called by a simulation.
+
+# Parameters
+- `callback_cycle`: A `Vector` of [`CycleCallback`](@ref)'s that are called based on the number of cycles (timesteps) that have been performed
+- `callback_time`: A `Vector` of [`TimeCallback`](@ref)'s that are called at a fixed set of times
+- `callback_dt`: A `Vector` of [`TimeDeltaCallback`](@ref)'s that are called at a fixed temporal frequency
+
+# Notes
+- This structure is typically initialized using [`ConfigureSimulationCallbacks()`](@ref). See the documentation of that function for further detail.
+"""
 struct SimulationCallback
     # Vectors of callback functions to be called at various points during the simulation
     callback_cycle::Vector{CycleCallback}         # A vector of functions to be called every N cycles
@@ -106,3 +162,7 @@ end
 
 
 export Simulation
+export SimulationCallback
+export CycleCallback
+export TimeCallback
+export TimeDeltaCallback

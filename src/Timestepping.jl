@@ -1,5 +1,5 @@
 """
-    AdvanceToTime( state::Simulation{T}, stoptime::T; timestep::Union{T,Nothing}=nothing, exact::Bool=false ) where { T <: AbstractFloat }
+    AdvanceToTime( state::Simulation{T}, stoptime::T; timestep::Union{T,Nothing}=nothing, exact::Bool=false, callbacks::Union{SimulationCallback,Nothing}=nothing ) where { T <: AbstractFloat }
 
 Advance the simulation with initial state `state` to a time specified by `stoptime` with a fixed timestep. 
 
@@ -11,6 +11,7 @@ A `Simulation{T}` representing the state at the end of the final cycle.
 - `stoptime`: The time to advance to. (Unit: s)
 - `timestep`: The timestep size, or `nothing` to use adaptive timestepping. (Unit: s, Default: `nothing`)
 - `exact`: If true, try to stop as close as possible to `stoptime` by adjusting the final timestep size (Default: `false`)
+- `callbacks`: An optional [`SimulationCallback()`](@ref) structure containing information about callbacks to be performed during the simulation.
 
 # Notes
 - The current simulation time is determined by the `Simulation` field `state.time`. If `state.time > stoptime`, no steps will be taken.
@@ -44,7 +45,7 @@ function AdvanceToTime( state::Simulation{T}, stoptime::T; timestep::Union{T,Not
 end
 
 """
-    AdvanceOneCycle!( output::Simulation{T}, input::Simulation{T}; timestep::Union{T,Nothing}=nothing ) where { T <: AbstractFloat }
+    AdvanceOneCycle!( output::Simulation{T}, input::Simulation{T}; timestep::Union{T,Nothing}=nothing, callbacks::Union{SimulationCallback,Nothing}=nothing ) where { T <: AbstractFloat }
 
 Advance the simulation by one cycle.
 
@@ -55,6 +56,7 @@ Advance the simulation by one cycle.
 - `output`: A `Simulation{T}` that will represent the output state. This will be modified by the function to represent the simulation state after advancing one cycle.
 - `input`: A `Simulation{T}` that represents the simulation state at the start of the cycle.
 - `timestep`: The size of the time step, or `nothing` to use adaptive timestepping. (Unit: s, Default: `nothing`)
+- `callbacks`: An optional [`SimulationCallback()`](@ref) structure containing information about callbacks to be performed during the simulation.
 
 # Side Effects
 - All fields of `output` are modified in-place.
@@ -73,7 +75,7 @@ function AdvanceOneCycle!( output::Simulation{T}, input::Simulation{T}; timestep
 end
 
 """
-    AdvanceOneCycle( state::Simulation{T}; timestep::Union{T,Nothing}=nothing ) where { T <: AbstractFloat }
+    AdvanceOneCycle( state::Simulation{T}; timestep::Union{T,Nothing}=nothing, callbacks::Union{SimulationCallback,Nothing}=nothing ) where { T <: AbstractFloat }
 
 Advance the simulation by one cycle.
 
@@ -83,6 +85,7 @@ A `Simulation{T}` representing the state at the end of the cycle
 # Arguments
 - `input`: A `Simulation{T}` representing the simulation state at the start of the cycle.
 - `timestep`: The size of the time step, or `nothing` to use adaptive timestepping. (Unit: s, Default: `nothing`)
+- `callbacks`: An optional [`SimulationCallback()`](@ref) structure containing information about callbacks to be performed during the simulation.
 
 # Notes
 - This function allocates a `deepcopy()` of the input state. The copy is modified and returned from this function.
@@ -95,7 +98,7 @@ function AdvanceOneCycle( state::Simulation{T}; timestep::Union{T,Nothing}=nothi
 end
 
 """
-    AdvanceNCycles( state::Simulation{T}, ncycles::UInt; timestep::Union{T,Nothing}=nothing ) where { T <: AbstractFloat }
+    AdvanceNCycles( state::Simulation{T}, ncycles::UInt; timestep::Union{T,Nothing}=nothing, callbacks::Union{SimulationCallback,Nothing}=nothing ) where { T <: AbstractFloat }
 
 Advance the simulation by `ncycles` cycles.
 
@@ -106,6 +109,7 @@ Advance the simulation by `ncycles` cycles.
 - `input`: A `Simulation{T}` representing the simulation state at the start of the first cycle.
 - `ncycles`: The number of cycles to advance.
 - `timestep`: The size of the time step, or `nothing` to use adaptive timestepping. (Unit: s, Default: nothing)
+- `callbacks`: An optional [`SimulationCallback()`](@ref) structure containing information about callbacks to be performed during the simulation.
 
 # Notes
 - This function allocates two `deepcopy()`s of the input state and returns the copy corresponding to the final state.

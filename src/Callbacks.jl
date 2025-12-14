@@ -37,6 +37,21 @@ function EvaluateCallbacks( simulation::Simulation{T}, callbacks::SimulationCall
     EvaluateTimeDeltaCallbacks( simulation, callbacks.callback_dt )
 end
 
+"""
+    ConfigureSimulationCallbacks( simulation::Simulation{T} ) where { T <: AbstractFloat }
+
+Configure a [`SimulationCallback`](@ref) structure for setting up callbacks as part of a simulation run.
+
+# Returns
+- A [`SimulationCallback`](@ref) structure
+
+# Parameters
+- `simulation`: A `Simulation{T}` describing the simulation that the callbacks are intended for.
+
+# Notes
+- Currently, the `simulation` parameter has no effect in this function and the resulting [`SimulationCallback`](@ref) structure can be used by any simulation, not just the one passed as an argument. However, this may change in future version.
+- Callback entries can be added using [`RegisterCycleCallback!()`](@ref), [`RegisterTimeCallback!()`](@ref), or [`RegisterTimeDeltaCallback!()`](@ref).
+"""
 function ConfigureSimulationCallbacks( simulation::Simulation{T} ) where { T <: AbstractFloat }
     # Functions to set up callbacks
     callbacks = SimulationCallback(
@@ -62,6 +77,7 @@ Register a function `func` to be executed every `N` cycles of the simulation sta
 
 # Notes
 - `func` is expected to accept arguments of the form `CallbackFunction( arg::Simulation{T} ) where { T <: AbstractFloat }`. `arg` will be the simulation state at the end of the cycle that the callback is executed on.
+- This type of callback is useful for cases where a callback should be called at a fixed number of cycles between each callback.
 """
 function RegisterCycleCallback!( callbacks::SimulationCallback, func::Function, N::UInt, initial_cycle::UInt=0 )
     # Check to be sure the requested callback frequency is at most once per cycle (i.e., not zero or negative)
@@ -96,6 +112,7 @@ Register a function `func` to be executed at the list of times specified in `tim
 - `func` is expected to accept arguments of the form `CallbackFunction( arg::Simulation{T} ) where { T <: AbstractFloat }`. `arg` will be the simulation state at the end of the cycle that the callback is executed on.
 - Callbacks are executed at the end of the first cycle where the simulation time is greater than the next element in `times`. As a result, it is not guaranteed that the callback will be called at exactly the time specified in the `times` vector.
 - `times` is sorted into ascending order before being stored. 
+- This type of callback is useful if the callback should be called at an irregular series of times. See [`CycleCallback`](@ref) if the callback should be called at a regular number of cycles, or [`TimeDeltaCallback`](@ref) if the callback should be called at a fixed temporal cadence.
 """
 function RegisterTimeCallback!( callbacks::SimulationCallback, func::Function, times::Vector{T} ) where { T <: AbstractFloat }
     # Create a copy of `times` and sort it into ascending order
@@ -133,6 +150,7 @@ Register a function `func` to be executed every `delta` seconds starting at `ini
 - `func` is expected to accept arguments of the form `CallbackFunction( arg::Simulation{T} ) where { T <: AbstractFloat }`. `arg` will be the simulation state at the end of the cycle that the callback is executed on.
 - Callbacks are executed at the end of the first cycle where the simulation time is greater than the last time the callback was executed plus `delta`. As a result, it is not guaranteed that the callback will be called at exactly `delta` seconds since the last call.
 - The time of the next callback is computed relative to the expected time of the current callback, _not_ when the callback was actually called. In other words, if a callback that should be called at `t₀` was actually called at `t₀+ϵ` due to the timestep size, the next callback will be scheduled for `t₀+δ`, *not* `t₀+ϵ+δ`.
+- This type of callback is useful for cases where a callback should be called at a fixed temporal spacing between each callback.
 """
 function RegisterTimeDeltaCallback!( callbacks::SimulationCallback, func::Function, delta::T; init::T=T(0.0) ) where { T <: AbstractFloat }
     # Create our time delta callback
