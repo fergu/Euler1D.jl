@@ -86,7 +86,8 @@ function RegisterCycleCallback!( callbacks::SimulationCallback, func::Function, 
     end
 
     # Create the callback
-    cb = CycleCallback( func, N, Ref( initial_cycle ) )
+    #   Subtract N from initial_cycle to ensure the callback is first called at initial_cycle
+    cb = CycleCallback( func, N, Ref( initial_cycle - N ) )
 
     # Add it to the list of callbacks
     push!( callbacks.callback_cycle, cb )
@@ -152,12 +153,12 @@ Register a function `func` to be executed every `delta` seconds starting at `ini
 - The time of the next callback is computed relative to the expected time of the current callback, _not_ when the callback was actually called. In other words, if a callback that should be called at `t₀` was actually called at `t₀+ϵ` due to the timestep size, the next callback will be scheduled for `t₀+δ`, *not* `t₀+ϵ+δ`.
 - This type of callback is useful for cases where a callback should be called at a fixed temporal spacing between each callback.
 """
-function RegisterTimeDeltaCallback!( callbacks::SimulationCallback, func::Function, delta::T; initial_time::T=T(0.0) ) where { T <: AbstractFloat }
+function RegisterTimeDeltaCallback!( callbacks::SimulationCallback, func::Function, delta::T, initial_time::T=T(0.0) ) where { T <: AbstractFloat }
     # Create our time delta callback
     #   Subtract `delta` from `init` to ensure the callback is first called at `init`
     #   This is required because the criteria used to decide to executed a callback is whether t > t_last + dt
     #   A small factor epsilon is also subtracted to ensture the greater than test passes at t = init
-    cb = TimeDeltaCallback( func, delta, Ref( inital_time - delta - eps(T) ) )
+    cb = TimeDeltaCallback( func, delta, Ref( initial_time - delta - eps(T) ) )
     
     # Add it to the list of callbacks
     push!( callbacks.callback_dt, cb )
