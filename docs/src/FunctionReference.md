@@ -5,6 +5,10 @@
     DefaultSimulationParameters
     InitializeSimulation
     UpdateSimulationState!
+```
+
+## Callbacks
+```@docs
     ConfigureSimulationCallbacks
     RegisterCycleCallback!
     RegisterTimeCallback!
