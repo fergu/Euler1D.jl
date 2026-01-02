@@ -110,6 +110,49 @@ where `0.1` is the time to advance to and the `exact=true` keyword tells the sim
     ```
     There is no requirement or advantage to using one method over any other. These are simply alternative ways of defining a function to describe the initial condition.
 
+## Callbacks
+
+Often it may be desirable to have the simulation stop at certain points in order to perform some processing, modify simulation state, or write the current simulation state to a file, amongst other things. To facilitate this, Euler1D supports callbacks that can be called based on various criteria. In particular, Euler1D supports callbacks that can be called at a regular cadence based on the number of cycles (timesteps) that have occurred ([`CycleCallback`](@ref)), at a regular cadence based on an elapsed time ([`TimeDeltaCallback`](@ref)), or at a fixed list of (potentially irregularly-spaced) times ([`TimeCallback`](@ref)). 
+
+Setting up callbacks is straightforward. Considering the Sod Shock Tube example above, a structure containing information about callbacks can be created using [`ConfigureSimulationCallbacks()`](@ref):
+```@repl sodsim
+callbacks = ConfigureSimulationCallbacks(init_state)
+```
+From here, one can define functions that should be called at various defined points during the simulation. For illustrative purposes, we will define three callback functions here:
+```@repl sodsim
+# A callback that will be called at a fixed list of times
+function MyTimeCallback( state::Simulation{T} ) where { T <: AbstractFloat }
+    println("In MyTimeCallback: Current time is $(state.time.x)")
+end;
+
+# A callback that will be called at a regular number of cycles
+function MyCycleCallback( state::Simulation{T} ) where { T <: AbstractFloat }
+    println("In MyCycleCallback: Current cycle is $(state.cycles.x)")
+end;
+
+# A callback that will be called at a regular temporal cadence
+function MyTimeDeltaCallback( state::Simulation{T} ) where { T <: AbstractFloat }
+    println("In MyTimeDeltaCallback: Current time is $(state.time.x)")
+end;
+```
+
+These three functions can then be assigned to the `callbacks` structure:
+```@repl sodsim
+RegisterTimeCallback!( callbacks, MyTimeCallback, Vector{Float64}([0.023, 0.067, 0.096]) ); # Register our time callback to run at t=0.023, 0.067, and 0.096
+RegisterCycleCallback!( callbacks, MyCycleCallback, 250 ); # Register our cycle callback to run every 250 cycles
+RegisterTimeDeltaCallback!( callbacks, MyTimeDeltaCallback, 0.03 ); # Register our time delta callback to run every 0.03 seconds
+
+# We can also register the same callback multiple times.
+RegisterTimeDeltaCallback!( callbacks, MyTimeDeltaCallback, 0.009, 0.05 ); # Let's register the time delta callback again, but starting at t=0.05 and with a increment of 0.009 seconds
+RegisterCycleCallback!( callbacks, MyCycleCallback, 20, 1200 ); # We can also do the same thing with cycle-based callbacks. Here, we'll start at the 1200th cycle and print every 20 cycles
+```
+
+We can then run the simulation and pass our callbacks as an argument:
+```@repl sodsim
+end_state = AdvanceToTime( init_state, 0.1; exact=true, callbacks=callbacks )
+```
+As you can see, the output from each of the callbacks is visible. Here, a rather simple example of just printing to the screen was used, but other options such as saving to disk, making plots, or other manipulations are possible.
+
 ## Plotting Results
 
 This section outlines a few examples of how simulation data can be post-processed to visualize results or perform advanced processing.
@@ -135,9 +178,20 @@ Similar plots can be made for other zone-centered quantities such as internal en
 
 ### X-T diagrams
 
-It is often useful to look at the evolution of the problem solution as a function of space and time rather than at just a single time instant. X-T diagrams are a useful way to perform this visualization. Gathering the data required to generate this type of plot is a little bit more complicated than the previous examples, however.
+It is often useful to look at the evolution of the problem solution as a function of space and time rather than at just a single time instant. X-T (or space-time) diagrams are a useful way to perform this visualization. Gathering the data required to generate this type of plot is a little bit more complicated than the previous examples, however, so this section will walk through an example of how this might be done.
 
-The simulation can be set up identically to previous examples: 
+X-T diagrams can be made using quantities such as pressure or density, but [Riemann invariants](https://en.wikipedia.org/wiki/Riemann_invariant) are a particularly powerful way to visualize the movement of waves within the domain. The Euler equations have positive and negative Riemann invariants, corresponding to rightwards- and leftwards-moving waves, respectively:
+```math
+J_\pm = u \pm \frac{2c}{\gamma - 1}
+```
+where ``J_\pm`` is the positive and negative Riemann invariant, ``c`` is the speed of sound, and ``\gamma`` is the ratio of specific heats. The value of the Riemann invariant is a constant along a wave, and so visualizing isocontours of ``J_\pm`` as a function of space and time will correspond to the various waves moving around the domain.
+
+As the above equation makes clear, we will need to combine multiple aspects of the simulation solution in order to compute the Riemann invariants. Additionally, the `contour` function from `Plots.jl` that we will use to plot the result assumes that the data it is provided lies on a regular grid, while `Euler1D` simulations are on a Lagrangian mesh, so we will need to interpolate our data to a regular grid. Fortunately, we can use callbacks to perform both of these tasks as the simulation runs.
+
+!!! note
+    The need to interpolate the data onto a regular grid is a specific limitation of the `contour` function in `Plots.jl`. Other plotting routines may exist that do not have this requirement, in which case the interpolation step will not be required.
+
+To start, the simulation can be set up identically to the Sod shock tube used in previous examples: 
 ```@repl xtsim
 using Euler1D # hide
 simulation_parameters = DefaultSimulationParameters();
@@ -148,106 +202,88 @@ simulation_parameters["init_pressure_function"] = (x) -> x < 0.5 ? 1.0 : 0.1;
 simulation_parameters["init_gamma_function"] = (x) -> 1.4;
 init_state = InitializeSimulation( simulation_parameters )
 ```
-In order to generate an X-T diagram, we will need to record the simulation state at multiple times in the simulation. To do this, let's define a new function that will be responsible for advancing the simulation through time: 
+Now we need to construct our callback to compute the Riemann invariants and interpolate it onto a regular grid. For this, we'll use the grid at ``t=0`` as our reference grid:
+```@repl xtsim
+plot_positions = init_state.zone_center; # The x positions for plotting
+```
+We will also need some arrays to store the resulting Riemann invariant values into. For this example, we'll run the simulation to ``t=1.0``, while stopping to plot every 0.001 seconds:
+```@repl xtsim
+sim_end = 1.0; # Run the simulation to t=1.0 seconds
+xt_dt = 0.001; # Stop to gather data for the X-T diagram every 0.001 seconds
+N_callbacks = Int( div( sim_end, xt_dt ) ) + 1; # This is how many times the callback should be called. We add 1 to account for the first callback at t=0
+xt_callback_count = 0; # How many times our plotting callback has been called. We'll use this to know where to save the Riemann invariant values for each callback
+```
+Using this, we can construct the arrays we'll use the save the Riemann invariants:
+```@repl xtsim
+plot_J₊ = zeros( N_callbacks, init_state.nzones ); # A matrix of the positive Riemann invariant values in every zone in the simulation
+plot_J₋ = zeros( N_callbacks, init_state.nzones ); # A matrix of the negative Riemann invariant values at every zone in the simulation
+plot_times = zeros( N_callbacks ); # The times at which the simulation data was saved. 
+```
+Now, finally, we can set up our actual callback routine
 ```@repl xtsim
 using Interpolations
-using Plots
 
-function run_simulation( init_state::Simulation{T}, end_time::T ) where { T <: AbstractFloat }
-    new_state = deepcopy( init_state ) # We'll need a copy of our initial state to modify inside the while loop
-    # Information about plotting
-    plot_dt = 0.001 # How often to stop and record data
-    next_plot = 0.0 # The next time to stop and record data
-    # Set up some matricies to hold our plotting data
-    plot_times = zeros( 0 ) # The times at which we've recorded data
-    plot_positions = init_state.zone_center # Where to plot the data at in space. We'll use the initial grid
-    plot_J₊ = zeros( 0, init_state.nzones ) # A matrix of the positive Riemann invariant values in every zone in the simulation
-    plot_J₋ = zeros( 0, init_state.nzones ) # A matrix of the negative Riemann invariant values at every zone in the simulation
-    while ( new_state.time.x <= end_time ) # Keep looping until we've reached our end time
-        new_state = AdvanceToTime( new_state, next_plot; exact=true ) # Advance the solution to the next time to record data
-        # Now record data about the simulation state
-        plot_times = vcat( plot_times, new_state.time.x ) # Record our current time, appending it to the plot_times vector
-        # Now compute the Riemann invariants. 
-        # For this we'll need to interpolate the velocities to zone centers, which we'll do with a simple average
-        uₘ = 0.5 .* ( new_state.velocity[1:end-1] .+ new_state.velocity[2:end] )
-        # Now compute the Riemann invariants
-        J₊ = uₘ .+ ( 2.0 .* new_state.speedofsound ) ./ ( new_state.gamma .- 1.0 ) # Positive Riemann invariant
-        J₋ = uₘ .- ( 2.0 .* new_state.speedofsound ) ./ ( new_state.gamma .- 1.0 ) # Negative Riemann invariant
-        # Most contour plot functions assume data is on a cartesian grid 
-        # However, because the grid zones in the simulation are moving, we'll need to interpolate the data back onto a cartesian grid.
-        # For simplicity, we will use the initial simulation grid as the grid for plotting
-        # We can use Interpolations.jl for this
-        J₊_interp = interpolate( ( new_state.zone_center, ), J₊, Gridded(Linear()) ) # Set up a linear interpolation of our data
-        J₊_extrap = extrapolate( J₊_interp, Line() ) # Linearly extrapolate if needed.
-        plot_J₊ = vcat( plot_J₊, J₊_extrap( plot_positions )' ) # Interpolate the simulation data back onto the initial grid and append it to our matrix of data
+function xt_callback( state::Simulation{T} ) where { T <: AbstractFloat }
+    global plot_times[begin + xt_callback_count] = state.time.x # Record our current time
 
-        J₋_interp = interpolate( ( new_state.zone_center, ), J₋, Gridded(Linear()) ) # Set up a linear interpolation of our data
-        J₋_extrap = extrapolate( J₋_interp, Line() ) # Linearly extrapolate if needed
-        plot_J₋ = vcat( plot_J₋, J₋_extrap( plot_positions )' ) # Interpolate the simulation data back onto the initial grid and append it to our matrix of data
-        next_plot = next_plot + plot_dt
-    end
-    # Now that the simulation is done, we can save our plot
-    # First compute the minimum and maximum Riemann invariant values. This helps set the contour levels for our plot
-    minJ = min( minimum( plot_J₊ ), minimum( plot_J₋ ) ) 
-    maxJ = max( maximum( plot_J₊ ), maximum( plot_J₊ ) )
-    # Now plot the Riemann invariants as contours
-    p = contour( plot_positions, plot_times, plot_J₊; c=:black, levels=minJ:0.2:maxJ, cbar=false ) # Positive invariants
-    contour!( p, plot_positions, plot_times, plot_J₋; c=:black, levels=minJ:0.2:maxJ ) # Negative invariants
-    savefig( p, "sod_xt.svg" )
-    return new_state
+    # Now compute the Riemann invariants
+    # For this we'll need to interpolate the velocities to zone centers, which we'll do with a simple average
+    uₘ = 0.5 .* ( state.velocity[1:end-1] .+ state.velocity[2:end] )
+
+    # Now compute the Riemann invariants
+    J₊ = uₘ .+ ( 2.0 .* state.speedofsound ) ./ ( state.gamma .- 1.0 ) # Positive Riemann invariant
+    J₋ = uₘ .- ( 2.0 .* state.speedofsound ) ./ ( state.gamma .- 1.0 ) # Negative Riemann invariant
+
+    # Most contour plot functions assume data is on a cartesian grid 
+    # However, because the grid zones in the simulation are moving, we'll need to interpolate the data back onto a cartesian grid.
+    # We can use Interpolations.jl for this
+
+    # First the positive (right-moving) invariant
+    J₊_interp = interpolate( ( state.zone_center, ), J₊, Gridded(Linear()) ) # Set up a linear interpolation of our data
+    J₊_extrap = extrapolate( J₊_interp, Line() ) # Linearly extrapolate if needed.
+    global plot_J₊[begin + xt_callback_count, :] = J₊_extrap( plot_positions ) # Interpolate the simulation data back onto the initial grid and add it to our matrix of data
+
+    # Now the negative (left-moving) one
+    J₋_interp = interpolate( ( state.zone_center, ), J₋, Gridded(Linear()) ) # Set up a linear interpolation of our data
+    J₋_extrap = extrapolate( J₋_interp, Line() ) # Linearly extrapolate if needed
+    global plot_J₋[begin + xt_callback_count, :] = J₋_extrap( plot_positions ) # Interpolate the simulation data back onto the initial grid and add it to our matrix of data
+
+    # Finally, increment the counter that tracks the number of times this callback has been called
+    global xt_callback_count += 1
 end;
 ```
-There's a lot going on in this function, but fortunately most of it is straightforward and is well explained by the comments. However, there's a few things worth highlighting. In particular, X-T diagrams can be made using quantities such as pressure or density, but [Riemann Invariants](https://en.wikipedia.org/wiki/Riemann_invariant) are a particularly powerful way to visualize the movement of waves within the domain. The Euler equations have positive and negative Riemann invariants, corresponding to rightwards- and leftwards-moving waves, respectively. These are computed using the following lines:
-```julia
-# Now compute the Riemann invariants. 
-# For this we'll need to interpolate the velocities to zone centers, which we'll do with a simple average
-uₘ = 0.5 .* ( new_state.velocity[1:end-1] .+ new_state.velocity[2:end] )
-# Now compute the Riemann invariants
-J₊ = uₘ .+ ( 2.0 .* new_state.speedofsound ) ./ ( new_state.gamma .- 1.0 ) # Positive Riemann invariant
-J₋ = uₘ .- ( 2.0 .* new_state.speedofsound ) ./ ( new_state.gamma .- 1.0 ) # Negative Riemann invariant
+Finally, we can add this callback to our simulation:
+```@repl xtsim
+callbacks = ConfigureSimulationCallbacks(init_state);
+RegisterTimeDeltaCallback!( callbacks, xt_callback, xt_dt ); # Register our X-T plotting callback
 ```
-These lines first translate the velocity (which is edge-centered) to the zone centers, and then uses that average velocity along with the speed of sound and ratio of specific heats to compute the positive and negative Riemann invariants as a function of space.
+And now, we can run the simulation:
+```@repl xtsim
+end_state = AdvanceToTime( init_state, sim_end; exact=true, callbacks=callbacks )
+```
+With the simulation complete, we can now plot our X-T diagram. First, compute the minimum and maximum Riemann invariant values, as this will help us set the limits for our plot:
+```@repl xtsim
+minJ = min( minimum( plot_J₊ ), minimum( plot_J₋ ) );
+maxJ = max( maximum( plot_J₊ ), maximum( plot_J₊ ) );
+```
+These values can then be used to create the contour plot
+```@repl xtsim
+using Plots
+p = contour( plot_positions, plot_times, plot_J₊; c=:black, levels=minJ:0.2:maxJ, cbar=false ); # Positive invariants
+contour!( p, plot_positions, plot_times, plot_J₋; c=:black, levels=minJ:0.2:maxJ ); # Negative invariants
+savefig( p, "sod_xt.svg" );
+```
+These lines are responsible for actually creating the contour plot. The first line plots the positive (rightwards-moving) Riemann invariants, and the second line adds a plot for the negative (leftwards-moving) Riemann invariants. The optional arguments are `c`, which sets the line color, `levels`, which sets the contour levels to plot, and `cbar`, which tells the plotting routine not to plot a colorbar as it isn't useful in these contexts. Finally, `savefig` saves the plot to a file called `sod_xt.svg`. Running these lines gives us our X-T diagram:
 
-Now that we have the Riemann invariants, we need to store them for plotting. However, most contour plotting functions (which we will use to plot our X-T diagram) assume that the data is stored on a rectangular grid. In this context, this would mean that the `x` positions are the same for all time. However, because this is a Lagrangian code, the `x` positions of the data are not constant as a function of time, so we need to massage the data into a format the contour plotting function can accept. This is done by interpolating the data at a given time back onto the initial grid using the `Interpolations.jl` package and the following lines: 
-```julia
-J₊_interp = interpolate( ( new_state.zone_center, ), J₊, Gridded(Linear()) ) # Set up a linear interpolation of our data
-J₊_extrap = extrapolate( J₊_interp, Line() ) # Linearly extrapolate if needed.
-plot_J₊ = vcat( plot_J₊, J₊_extrap( plot_positions )' ) # Interpolate the simulation data back onto the initial grid and append it to our matrix of data
-        
-J₋_interp = interpolate( ( new_state.zone_center, ), J₋, Gridded(Linear()) ) # Set up a linear interpolation of our data
-J₋_extrap = extrapolate( J₋_interp, Line() ) # Linearly extrapolate if needed
-plot_J₋ = vcat( plot_J₋, J₋_extrap( plot_positions )' ) # Interpolate the simulation data back onto the initial grid and append it to our matrix of data
-```
-The `interpolate` and `extrapolate` functions set up this interpolation, and then the `vcat` lines actually perform the interpolation and append the result to the matricies we're using to store our data.
+![](sod_xt.svg)
 
-Now that the simulation is done, we'll configure the contour plot to actually produce the X-T diagram. First, we want to compute the minimum and maximum values of the Riemann invariants. We do this so that the contour plots for the positive and negative invariants use the same contour levels, which helps make sure lines are connected to each other and aids in visualization.
-```julia
-# First compute the minimum and maximum Riemann invariant values. This helps set the contour levels for our plot
-minJ = min( minimum( plot_J₊ ), minimum( plot_J₋ ) ) 
-maxJ = max( maximum( plot_J₊ ), maximum( plot_J₊ ) )
-```
-We can now actually create the contour plot:
-```julia
-# Now plot the Riemann invariants as contours
-p = contour( plot_positions, plot_times, plot_J₊; c=:black, levels=minJ:0.2:maxJ, cbar=false ) # Positive invariants
-contour!( p, plot_positions, plot_times, plot_J₋; c=:black, levels=minJ:0.2:maxJ ) # Negative invariants
-savefig( p, "sod_xt.svg" )
-```
-These lines are responsible for actually creating the contour plot. The first line plots the positive (rightwards-moving) Riemann invariants, and the second line adds a plot for the negative (leftwards-moving) Riemann invariants. The optional arguments are `c`, which sets the line color, `levels`, which sets the contour levels to plot, and `cbar`, which tells the plotting routine not to plot a colorbar as it isn't useful in these contexts. Finally, `savefig` saves the plot to a file called `sod_xt.svg`.
-
-!!! tip
-    The plot colors were set to black as this makes a uniform looking plot. However, you might try plotting the two with different colors (say, `c=:red` in one plot) as this will show how the positive and negative Riemann invariants correspond to left- and right-moving waves.
+And, voila! You can see the leftwards moving expansion wave and the rightwards moving shock and contact surface. Reflections off of the end walls are also visible, as are interactions between different waves. 
 
 !!! note
     The `levels` argument, particularly the step size of `0.2`, was tuned to produce a good looking plot for this case. You will probably need to adjust this for other configurations.
-    
-With everything set up we can run our simulation and take a look at our plot. For illustration purposes, the final time in the simulation will be a later time in order to better show the movement of waves in the final plot.
-```@repl xtsim
-final_state = run_simulation( init_state, 1.0 )
-```
-![](sod_xt.svg)
 
-and there we go! You can see the leftwards moving expansion wave and the rightwards moving shock and contact surface. Reflections off of the end walls are also visible, as are interactions between different waves. 
+!!! tip
+    The plot colors were set to black as this makes a uniform looking plot. However, you might try plotting the two with different colors (say, `c=:red` in one plot) as this will show how the positive and negative Riemann invariants correspond to left- and right-moving waves.
 
 !!! tip
     You might notice that things like the material interface look a little wider than might be expected. Try playing around with the `artificial_viscosity_coefficient` and `artificial_conductivity_coefficient` values to see what effect these parameters have.
@@ -299,5 +335,7 @@ savefig( "sod_velocity_updated.svg" ) # hide
 ```
 ![](sod_velocity_updated.svg)
 
+Functions like these could, for example, be set up to run within a [`TimeCallback`](@ref) in order to update the problem state at a known time in order to, for example, add another shock wave.
+
 !!! caution
-    The functions to update the simulation state were chosen to be illustrative, and it's likely the simulation would be unstable following this change. Care should be taken to ensure the updated state makes sense.
+    The functions to update the simulation state in this example were chosen to be illustrative, and it's likely the simulation would be unstable following this change. Care should be taken to ensure the updated state makes sense.
