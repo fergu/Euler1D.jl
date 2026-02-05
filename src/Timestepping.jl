@@ -168,7 +168,7 @@ function CalculateTimestepSize( state::Simulation{T} ) where { T <: AbstractFloa
         end
     end
     if ( state.CFL * minΔt < state.min_dt )
-        error("Δt ($(state.CFL * minΔt)) < minimum Δt ($(state.min_Δt)). Exiting.")
+        error("Δt ($(state.CFL * minΔt)) < minimum Δt ($(state.min_dt)). Exiting.")
     end
     return state.CFL * minΔt
 end
