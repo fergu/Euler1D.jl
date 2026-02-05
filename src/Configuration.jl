@@ -160,15 +160,14 @@ A `Dict{String, Any}` with default parameters for a simulation.
 
 # Parameters
 - `start_time`: The initial time of the simulation. (Unit: s; Default: 0.0)
-- `end_time`: The final time of the simulation. (Unit: s; Default: 1.0)
 - `start_position`: The position of the left side of the domain. (Unit: m; Default: 0.0)
 - `end_position`: The position of the right side of the domain. (Unit: m; Default: 1.0)
 - `number_of_zones`: The number of zones to divide the domain into. (Unit: ⋅; Default: 1000)
 - `CFL`: The CFL number to use. (Unit: ⋅; Default: 0.2)
 - `artificial_viscosity_coefficient`: The coefficient to use for artificial viscosity. (Unit: ⋅; Default: 1e0)
 - `artificial_conductivity_coefficient`: The coefficient to use for artificial conductivity. (Unit: ⋅; Default: 1e-2)
-- `min_timestep`: The minimum allowable timestep size. Simulation will halt if timestep falls below this value. (Unit: s; Default: 1e-7)
-- `max_cycles`: The maximum number of cycles to perform. Simulation will halt if more than this many timesteps are taken. (Unit: ⋅; Default: 1e6)
+- `minimum_timestep`: The minimum allowable timestep size. Simulation will halt if timestep falls below this value. (Unit: s; Default: 1e-7)
+- `maximum_cycles`: The maximum number of cycles to perform. Simulation will halt if more than this many timesteps are taken. (Unit: ⋅; Default: 1e6)
 - `init_density_function`: A `Function` that returns the initial density as a function of position `x`. (Unit: kg/m³; Default: `nothing`, must be user-supplied)
 - `init_velocity_function`: A `Function` that returns the initial velocity as a function of position `x`. (Unit: m/s; Default: `nothing`, must be user-supplied)
 - `init_pressure_function`: A `Function` that returns the initial pressure as a function of position `x`. (Unit: N/m²; Default: `nothing`, must be user-supplied)
